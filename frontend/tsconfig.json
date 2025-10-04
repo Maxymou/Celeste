@@ -5,11 +5,7 @@
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "strict": true,
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "baseUrl": "."
-  },
-  "include": ["src"],
-  "references": []
+    "baseUrl": ".",
+    "paths": {}
+  }
 }
