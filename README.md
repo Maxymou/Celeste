@@ -24,7 +24,27 @@ data/
   celestex.db          # SQLite database (created on first run)
 ```
 
-## Quick install
+## One-line remote installation
+
+Provision a fresh machine directly from GitHub with a single command (replace
+`ORG/REPO` with the actual GitHub path of your fork):
+
+```bash
+curl -sSfL https://raw.githubusercontent.com/ORG/REPO/main/scripts/remote-install.sh \
+  | bash -s -- --repo https://github.com/ORG/REPO.git
+```
+
+Optional flags:
+
+- `--branch <name>`: checkout a specific branch or tag (defaults to `main`).
+- `--dest <path>`: install into a custom directory (default: `./celestex`).
+- `--force`: delete the destination directory before cloning.
+
+The remote installer requires `git`, `python3` (3.11+) and `npm` to be
+available on the target system. It clones the repository, delegates to the
+local `scripts/install.sh` workflow, and outputs the next steps.
+
+## Quick install (existing clone)
 
 Run the automated installer from the project root to provision the Python
 virtual environment, install dependencies and build the front-end in one step:
