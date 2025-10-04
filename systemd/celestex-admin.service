@@ -9,7 +9,9 @@ Group=celeste
 WorkingDirectory=/opt/celestex
 Environment=PATH=/opt/celestex/.venv/bin
 Environment=CELESTEX_DB_PATH=/opt/celestex/data/celestex.db
-EnvironmentFile=-/opt/celestex/.env
+Environment=ADMIN_USER=admin
+Environment=ADMIN_PASS=admin
+Environment=ADMIN_SECRET=admin
 ExecStart=/opt/celestex/.venv/bin/uvicorn backend_admin.main:app --host 0.0.0.0 --port 8000 --proxy-headers
 Restart=always
 RestartSec=5
