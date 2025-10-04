@@ -24,6 +24,18 @@ data/
   celestex.db          # SQLite database (created on first run)
 ```
 
+## Quick install
+
+Run the automated installer from the project root to provision the Python
+virtual environment, install dependencies and build the front-end in one step:
+
+```bash
+bash scripts/install.sh
+```
+
+The script checks for Python 3.11+ and Node.js, creates `.venv`, installs the
+backend requirements and compiles the React assets.
+
 ## Requirements
 
 - Python 3.11
