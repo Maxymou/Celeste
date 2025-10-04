@@ -1,0 +1,19 @@
+[Unit]
+Description=Celeste X FastAPI application
+After=network.target
+
+[Service]
+Type=simple
+User=celestex
+Group=celestex
+WorkingDirectory=/opt/celestex
+Environment="PATH=/opt/celestex/.venv/bin"
+ExecStart=/opt/celestex/.venv/bin/uvicorn backend.app.main:app \
+  --host 0.0.0.0 \
+  --port 6000 \
+  --proxy-headers
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target
