@@ -127,6 +127,16 @@ sudo -u celeste bash -c 'source .venv/bin/activate && pip install -r backend/req
 sudo systemctl restart celestex celestex-admin
 ```
 
+> 💡 **Astuce** : si `git pull` signale qu'un fichier non suivi serait écrasé
+> (ex. `frontend/package-lock.json`), supprimez ou déplacez ce fichier avant
+> de relancer la commande :
+>
+> ```bash
+> sudo -u celeste rm frontend/package-lock.json
+> # ou
+> sudo -u celeste mv frontend/package-lock.json /tmp/package-lock.json.bak
+> ```
+
 ## 🗑️ Désinstallation
 
 ### Désinstallation automatisée
