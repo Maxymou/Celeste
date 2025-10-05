@@ -1,18 +1,27 @@
 import React from 'react'
 
-const tabs = ["Canton", "Portée", "Support", "Câble", "Température"] as const
+const tabs = ["Support", "Câble"] as const
 type Tab = typeof tabs[number]
 
-export function Tabs({active, onChange}:{active:Tab, onChange:(t:Tab)=>void}) {
+export function Tabs({ active, onChange }: { active: Tab; onChange: (t: Tab) => void }) {
   return (
-    <div style={{display:'flex', gap:8, padding:8, borderBottom:'1px solid #ddd'}}>
-      {tabs.map(t => (
-        <button key={t}
-          onClick={()=>onChange(t)}
-          style={{padding:'8px 12px', border:'1px solid #ccc', background: t===active ? '#eee' : '#fff', borderRadius:8}}>
-          {t}
-        </button>
-      ))}
+    <div className="tabs" role="tablist" aria-label="Navigation principale">
+      {tabs.map((tab) => {
+        const isActive = tab === active
+
+        return (
+          <button
+            key={tab}
+            type="button"
+            role="tab"
+            aria-selected={isActive}
+            className={`tab-button${isActive ? ' is-active' : ''}`}
+            onClick={() => onChange(tab)}
+          >
+            {tab}
+          </button>
+        )
+      })}
     </div>
   )
 }
