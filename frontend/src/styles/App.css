@@ -259,6 +259,7 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  line-height: 0;
   padding: 0;
   width: clamp(44px, 9vw, 52px);
   height: clamp(44px, 9vw, 52px);
