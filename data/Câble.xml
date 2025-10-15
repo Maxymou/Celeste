@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Cables>
+    <!-- Câbles conducteurs -->
+    <Cable>
+        <Nom>Aster 570</Nom>
+        <Type>conducteur</Type>
+        <MasseLineique>1.631</MasseLineique>
+        <ModuleElasticite>78000</ModuleElasticite>
+        <Section>564.6</Section>
+        <CoefficientDilatation>19.1</CoefficientDilatation>
+        <ChargeRupture>17200</ChargeRupture>
+        <ChargeAdmissible>5160</ChargeAdmissible>
+        <Diametre>31.5</Diametre>
+    </Cable>
+    
+    <Cable>
+        <Nom>Pétunia 612</Nom>
+        <Type>conducteur</Type>
+        <MasseLineique>2.311</MasseLineique>
+        <ModuleElasticite>63000</ModuleElasticite>
+        <Section>612.0</Section>
+        <CoefficientDilatation>20.5</CoefficientDilatation>
+        <ChargeRupture>19800</ChargeRupture>
+        <ChargeAdmissible>5940</ChargeAdmissible>
+        <Diametre>34.8</Diametre>
+    </Cable>
+    
+    <Cable>
+        <Nom>Phlox 228</Nom>
+        <Type>conducteur</Type>
+        <MasseLineique>0.776</MasseLineique>
+        <ModuleElasticite>74000</ModuleElasticite>
+        <Section>228.0</Section>
+        <CoefficientDilatation>19.3</CoefficientDilatation>
+        <ChargeRupture>7200</ChargeRupture>
+        <ChargeAdmissible>2160</ChargeAdmissible>
+        <Diametre>21.8</Diametre>
+    </Cable>
+    
+    <Cable>
+        <Nom>Almélec 148</Nom>
+        <Type>conducteur</Type>
+        <MasseLineique>0.490</MasseLineique>
+        <ModuleElasticite>58000</ModuleElasticite>
+        <Section>147.1</Section>
+        <CoefficientDilatation>23.0</CoefficientDilatation>
+        <ChargeRupture>4460</ChargeRupture>
+        <ChargeAdmissible>1338</ChargeAdmissible>
+        <Diametre>17.5</Diametre>
+    </Cable>
+    
+    <!-- Câbles de garde -->
+    <Cable>
+        <Nom>Câble de garde AG7 116</Nom>
+        <Type>garde</Type>
+        <MasseLineique>0.946</MasseLineique>
+        <ModuleElasticite>170000</ModuleElasticite>
+        <Section>116.0</Section>
+        <CoefficientDilatation>11.5</CoefficientDilatation>
+        <ChargeRupture>11700</ChargeRupture>
+        <ChargeAdmissible>3510</ChargeAdmissible>
+        <Diametre>13.5</Diametre>
+    </Cable>
+    
+    <Cable>
+        <Nom>Câble de garde AG7 147</Nom>
+        <Type>garde</Type>
+        <MasseLineique>1.195</MasseLineique>
+        <ModuleElasticite>170000</ModuleElasticite>
+        <Section>147.0</Section>
+        <CoefficientDilatation>11.5</CoefficientDilatation>
+        <ChargeRupture>14800</ChargeRupture>
+        <ChargeAdmissible>4440</ChargeAdmissible>
+        <Diametre>15.2</Diametre>
+    </Cable>
+    
+    <!-- Câbles mixtes (conducteur + fibre optique) -->
+    <Cable>
+        <Nom>OPGW 75</Nom>
+        <Type>mixte</Type>
+        <MasseLineique>0.750</MasseLineique>
+        <ModuleElasticite>150000</ModuleElasticite>
+        <Section>75.0</Section>
+        <CoefficientDilatation>12.5</CoefficientDilatation>
+        <ChargeRupture>7500</ChargeRupture>
+        <ChargeAdmissible>2250</ChargeAdmissible>
+        <Diametre>12.0</Diametre>
+    </Cable>
+</Cables>
