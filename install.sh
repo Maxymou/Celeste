@@ -12,6 +12,17 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
+# S'assurer que le répertoire courant est valide (cas de réinstallation
+# lancée depuis un dossier supprimé)
+if ! pwd >/dev/null 2>&1; then
+    echo -e "${YELLOW}Répertoire courant introuvable, déplacement temporaire...${NC}"
+    if [ -n "${HOME:-}" ] && [ -d "$HOME" ]; then
+        cd "$HOME"
+    else
+        cd /tmp
+    fi
+fi
+
 # Configuration
 INSTALL_DIR="/opt/celestex"
 SERVICE_USER="celeste"
