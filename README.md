@@ -28,9 +28,13 @@ Application de calcul mécanique pour lignes électriques aériennes.
 ### Installation automatisée (recommandée)
 
 ```bash
-# Installation en une commande
+# Installation en une commande (à lancer depuis un utilisateur avec sudo)
 curl -sSL https://raw.githubusercontent.com/Maxymou/CELESTE/main/install.sh | bash
 ```
+
+> ℹ️ **Important** : exécutez cette commande en tant qu'utilisateur standard disposant des
+> droits `sudo`. Le script refuse désormais d'être lancé directement en root et
+> utilisera `sudo` uniquement pour les opérations nécessitant des privilèges.
 
 **Installation prête avec le repository Maxymou/CELESTE !**
 
@@ -47,7 +51,8 @@ sudo apt install python3 python3-venv nodejs npm git curl
 git clone https://github.com/Maxymou/CELESTE.git /opt/celestex
 cd /opt/celestex
 chmod +x install.sh
-sudo ./install.sh
+# Lancer l'installation depuis un utilisateur standard avec accès sudo
+./install.sh
 ```
 
 ### Vérification de l'installation
@@ -60,17 +65,19 @@ sudo ./install.sh
 ### Désinstallation
 
 ```bash
-# Désinstallation complète
+# Désinstallation complète (à lancer depuis un utilisateur avec sudo)
 curl -sSL https://raw.githubusercontent.com/Maxymou/CELESTE/main/uninstall.sh | bash
 
 # Ou désinstallation manuelle
 ./uninstall.sh
 ```
 
-**Options de désinstallation :**
-- **Suppression complète** : Supprime tout (services, fichiers, base de données, utilisateur)
-- **Conservation des données** : Garde les fichiers et la base de données
-- **Suppression DB uniquement** : Supprime seulement la base de données
+> ℹ️ **Important** : comme pour l'installation, le script doit être lancé depuis un
+> utilisateur standard ayant les droits `sudo`. Il vous demandera une confirmation
+> interactive avant de supprimer les services et vous proposera 3 options :
+> 1. **Suppression complète** : services, fichiers, base de données et utilisateur
+> 2. **Conservation des données** : garde `/opt/celestex` pour une réinstallation future
+> 3. **Suppression DB uniquement** : efface seulement `data/celestex.db`
 
 ### Vérification de la désinstallation
 
@@ -85,7 +92,11 @@ Une fois l'installation terminée, vous pouvez accéder à :
 
 - **Application principale** : `http://<IP_VM>:6000`
 - **Admin dashboard** : `http://<IP_VM>:8000`
-- **Identifiants admin** : `admin` / `admin123`
+- **Identifiants admin** : par défaut `admin` / `admin123` (configurables dans `/opt/celestex/.env`)
+
+> 🔐 L'interface SQLAdmin demande désormais une authentification via formulaire.
+> Les services systemd chargent automatiquement les variables définies dans
+> `.env`, y compris le secret de session généré lors de l'installation.
 
 ## 🔧 Gestion des services
 
@@ -124,6 +135,7 @@ cd /opt/celestex
 sudo -u celeste git pull
 sudo -u celeste bash -c 'cd frontend && npm ci && npm run build'
 sudo -u celeste bash -c 'source .venv/bin/activate && pip install -r backend/requirements.txt'
+sudo -u celeste bash -c 'source .venv/bin/activate && pip install sqladmin'
 sudo systemctl restart celestex celestex-admin
 ```
 
@@ -137,24 +149,10 @@ sudo systemctl restart celestex celestex-admin
 > sudo -u celeste mv frontend/package-lock.json /tmp/package-lock.json.bak
 > ```
 
-## 🗑️ Désinstallation
+## 🗑️ Désinstallation manuelle (si nécessaire)
 
-### Désinstallation automatisée
-
-```bash
-# Désinstallation en une commande
-curl -sSL https://raw.githubusercontent.com/Maxymou/CELESTE/main/uninstall.sh | bash
-```
-
-### Options de désinstallation
-
-Le script de désinstallation vous propose 3 options :
-
-1. **Suppression complète** : Supprime tout (services, fichiers, base de données, utilisateur)
-2. **Conservation des données** : Garde les fichiers et la base de données pour une réinstallation future
-3. **Suppression DB uniquement** : Supprime seulement la base de données
-
-### Désinstallation manuelle
+Les scripts `uninstall.sh` et `cleanup.sh` couvrent la majorité des cas. Si vous devez
+malgré tout intervenir manuellement, voici les commandes utilisées en arrière-plan :
 
 ```bash
 # Arrêter les services
@@ -168,23 +166,20 @@ sudo rm -f /etc/systemd/system/celestex.service
 sudo rm -f /etc/systemd/system/celestex-admin.service
 sudo systemctl daemon-reload
 
-# Supprimer l'utilisateur
+# Supprimer l'utilisateur (si plus nécessaire)
 sudo userdel -r celeste
 
 # Supprimer les fichiers (optionnel)
 sudo rm -rf /opt/celestex
 ```
 
-### Nettoyage complet (dernier recours)
-
-Si la désinstallation normale ne fonctionne pas :
-
 ```bash
-# Nettoyage forcé complet
+# Nettoyage forcé complet (dernier recours)
 ./cleanup.sh
 ```
 
-**⚠️ ATTENTION** : Ce script force la suppression de TOUS les composants CELESTE X sans demander de confirmation pour les données.
+> ⚠️ **Attention** : `cleanup.sh` supprime sans confirmation l'ensemble des composants
+> CELESTE X (services, utilisateur, fichiers et base de données).
 
 ## API
 
@@ -284,7 +279,7 @@ source ../.venv/bin/activate
 export CELESTEX_DB_PATH=../data/celestex.db
 export ADMIN_USER=admin
 export ADMIN_PASS=admin123
-export ADMIN_SECRET=admin
+export ADMIN_SECRET=change-me
 uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
 
@@ -295,4 +290,5 @@ Modifiez le fichier `deploy.conf` pour personnaliser :
 - Utilisateur système
 - Ports
 - Identifiants admin
+- Secret de session admin
 - Repository GitHub
