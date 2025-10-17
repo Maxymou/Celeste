@@ -46,7 +46,7 @@ type NavItem = {
 }
 
 const navItems: NavItem[] = [
-  { id: 'home', label: 'Accueil', icon: HomeIcon, isActive: true, ariaLabel: 'Revenir à l’accueil' },
+  { id: 'home', label: 'Accueil', icon: HomeIcon, isActive: true, ariaLabel: 'Revenir à l'accueil' },
   { id: 'cables', label: 'Câbles', icon: CableIcon, ariaLabel: 'Accéder aux câbles' },
   { id: 'create', label: 'Nouveau chantier', icon: PlusIcon, variant: 'primary', ariaLabel: 'Créer un nouveau chantier' },
   { id: 'pylons', label: 'Pylônes', icon: PylonIcon, ariaLabel: 'Consulter les pylônes' },
