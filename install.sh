@@ -12,12 +12,34 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
+# S'assurer que le répertoire courant est valide (cas de réinstallation
+# lancée depuis un dossier supprimé)
+if ! pwd >/dev/null 2>&1; then
+    echo -e "${YELLOW}Répertoire courant introuvable, déplacement temporaire...${NC}"
+    if [ -n "${HOME:-}" ] && [ -d "$HOME" ]; then
+        cd "$HOME"
+    else
+        cd /tmp
+    fi
+fi
+
 # Configuration
 INSTALL_DIR="/opt/celestex"
 SERVICE_USER="celeste"
 GITHUB_REPO="https://github.com/Maxymou/CELESTE.git"
 ADMIN_USER="admin"
 ADMIN_PASS="admin123"  # À changer en production !
+if [ -z "${ADMIN_SECRET:-}" ]; then
+    if command -v openssl >/dev/null 2>&1; then
+        ADMIN_SECRET="$(openssl rand -hex 32)"
+    else
+        ADMIN_SECRET="$(python3 - <<'PY'
+import secrets
+print(secrets.token_hex(32))
+PY
+)"
+    fi
+fi
 
 echo -e "${BLUE}========================================${NC}"
 echo -e "${BLUE}    Installation de CELESTE X${NC}"
@@ -94,6 +116,7 @@ sudo -u "$SERVICE_USER" cp env.example .env
 sudo -u "$SERVICE_USER" sed -i "s|/opt/celestex/data/celestex.db|$INSTALL_DIR/data/celestex.db|g" .env
 sudo -u "$SERVICE_USER" sed -i "s|ADMIN_USER=admin|ADMIN_USER=$ADMIN_USER|g" .env
 sudo -u "$SERVICE_USER" sed -i "s|ADMIN_PASS=admin|ADMIN_PASS=$ADMIN_PASS|g" .env
+sudo -u "$SERVICE_USER" sed -i "s|ADMIN_SECRET=change-me|ADMIN_SECRET=$ADMIN_SECRET|g" .env
 
 # Installation des services systemd
 echo -e "${YELLOW}Installation des services systemd...${NC}"
