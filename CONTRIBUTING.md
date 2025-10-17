@@ -30,7 +30,7 @@ source ../.venv/bin/activate
 export CELESTEX_DB_PATH=../data/celestex.db
 export ADMIN_USER=admin
 export ADMIN_PASS=admin123
-export ADMIN_SECRET=admin
+export ADMIN_SECRET=change-me
 uvicorn main:app --reload --port 8000
 ```
 
