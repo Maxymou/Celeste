@@ -167,7 +167,7 @@ Type=simple
 User=$SERVICE_USER
 WorkingDirectory=$INSTALL_DIR/backend_admin
 EnvironmentFile=$INSTALL_DIR/.env
-ExecStart=$INSTALL_DIR/.venv/bin/uvicorn main:app --host 127.0.0.1 --port 8000
+ExecStart=$INSTALL_DIR/.venv/bin/uvicorn main:app --host 0.0.0.0 --port 8000
 Restart=always
 RestartSec=10
 
