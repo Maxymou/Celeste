@@ -92,7 +92,11 @@ Une fois l'installation terminée, vous pouvez accéder à :
 
 - **Application principale** : `http://<IP_VM>:6000`
 - **Admin dashboard** : `http://<IP_VM>:8000`
-- **Identifiants admin** : `admin` / `admin123`
+- **Identifiants admin** : par défaut `admin` / `admin123` (configurables dans `/opt/celestex/.env`)
+
+> 🔐 L'interface SQLAdmin demande désormais une authentification via formulaire.
+> Les services systemd chargent automatiquement les variables définies dans
+> `.env`, y compris le secret de session généré lors de l'installation.
 
 ## 🔧 Gestion des services
 
@@ -275,7 +279,7 @@ source ../.venv/bin/activate
 export CELESTEX_DB_PATH=../data/celestex.db
 export ADMIN_USER=admin
 export ADMIN_PASS=admin123
-export ADMIN_SECRET=admin
+export ADMIN_SECRET=change-me
 uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
 
@@ -286,4 +290,5 @@ Modifiez le fichier `deploy.conf` pour personnaliser :
 - Utilisateur système
 - Ports
 - Identifiants admin
+- Secret de session admin
 - Repository GitHub

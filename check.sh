@@ -16,6 +16,16 @@ echo -e "${BLUE}========================================${NC}"
 echo -e "${BLUE}    Vérification CELESTE X${NC}"
 echo -e "${BLUE}========================================${NC}"
 
+# Charger la configuration depuis .env si présent
+ENV_FILE="/opt/celestex/.env"
+if [ -f "$ENV_FILE" ]; then
+    # shellcheck disable=SC1090
+    source "$ENV_FILE"
+fi
+
+ADMIN_USER=${ADMIN_USER:-admin}
+ADMIN_PASS=${ADMIN_PASS:-admin123}
+
 # Vérifier les services
 echo -e "${YELLOW}Vérification des services systemd...${NC}"
 
@@ -55,7 +65,7 @@ else
     echo -e "${RED}✗ API principale: NE RÉPOND PAS${NC}"
 fi
 
-if curl -s -u admin:admin123 http://localhost:8000/admin/health | grep -q "ok"; then
+if curl -s -u "$ADMIN_USER:$ADMIN_PASS" http://localhost:8000/admin/health | grep -q "ok"; then
     echo -e "${GREEN}✓ API admin: RÉPOND${NC}"
 else
     echo -e "${RED}✗ API admin: NE RÉPOND PAS${NC}"
@@ -84,7 +94,7 @@ echo -e "${GREEN}    Résumé de la vérification${NC}"
 echo -e "${GREEN}========================================${NC}"
 echo -e "${BLUE}Application:${NC} http://$IP:6000"
 echo -e "${BLUE}Admin:${NC}       http://$IP:8000"
-echo -e "${BLUE}Identifiants:${NC} admin / admin123"
+echo -e "${BLUE}Identifiants:${NC} $ADMIN_USER / $ADMIN_PASS"
 echo ""
 echo -e "${YELLOW}Logs en temps réel:${NC}"
 echo "  sudo journalctl -u celestex -f"

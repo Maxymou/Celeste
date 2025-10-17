@@ -18,6 +18,17 @@ SERVICE_USER="celeste"
 GITHUB_REPO="https://github.com/Maxymou/CELESTE.git"
 ADMIN_USER="admin"
 ADMIN_PASS="admin123"  # À changer en production !
+if [ -z "${ADMIN_SECRET:-}" ]; then
+    if command -v openssl >/dev/null 2>&1; then
+        ADMIN_SECRET="$(openssl rand -hex 32)"
+    else
+        ADMIN_SECRET="$(python3 - <<'PY'
+import secrets
+print(secrets.token_hex(32))
+PY
+)"
+    fi
+fi
 
 echo -e "${BLUE}========================================${NC}"
 echo -e "${BLUE}    Installation de CELESTE X${NC}"
@@ -106,14 +117,11 @@ sudo -u "$SERVICE_USER" mkdir -p data
 
 # Configuration des variables d'environnement
 echo -e "${YELLOW}Configuration des variables d'environnement...${NC}"
-cat > /tmp/celestex.env <<EOF
-CELESTEX_DB_PATH=$INSTALL_DIR/data/celestex.db
-ADMIN_USER=$ADMIN_USER
-ADMIN_PASS=$ADMIN_PASS
-ADMIN_SECRET=admin
-EOF
-sudo mv /tmp/celestex.env "$INSTALL_DIR/.env"
-sudo chown "$SERVICE_USER:$SERVICE_USER" "$INSTALL_DIR/.env"
+sudo -u "$SERVICE_USER" cp env.example .env
+sudo -u "$SERVICE_USER" sed -i "s|/opt/celestex/data/celestex.db|$INSTALL_DIR/data/celestex.db|g" .env
+sudo -u "$SERVICE_USER" sed -i "s|ADMIN_USER=admin|ADMIN_USER=$ADMIN_USER|g" .env
+sudo -u "$SERVICE_USER" sed -i "s|ADMIN_PASS=admin|ADMIN_PASS=$ADMIN_PASS|g" .env
+sudo -u "$SERVICE_USER" sed -i "s|ADMIN_SECRET=change-me|ADMIN_SECRET=$ADMIN_SECRET|g" .env
 
 # Installation des services systemd
 echo -e "${YELLOW}Installation des services systemd...${NC}"
