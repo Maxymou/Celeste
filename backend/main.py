@@ -1,11 +1,11 @@
 from pathlib import Path
-from fastapi import FastAPI, APIRouter, Request, HTTPException
+from fastapi import FastAPI, APIRouter, Request, HTTPException, Query
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from typing import Optional
 
-from domain.mechanical import (
+from backend.domain.mechanical import (
     MechanicalCalculator,
     CableProperties,
     SpanGeometry,
@@ -231,9 +231,9 @@ def calc_cigre_emissivity(age_years: float = 10.0):
 
 @api.post("/calc/validate-domain")
 def validate_domain(
-    a1_m: float = Field(..., gt=0, description="Plus grande portée (m)"),
-    a2_m: float = Field(..., gt=0, description="Plus petite portée (m)"),
-    h_max_m: float = Field(..., ge=0, description="Dénivelé max canton (m)")
+    a1_m: float = Query(..., gt=0, description="Plus grande portée (m)"),
+    a2_m: float = Query(..., gt=0, description="Plus petite portée (m)"),
+    h_max_m: float = Query(..., ge=0, description="Dénivelé max canton (m)")
 ):
     """
     Valide le domaine d'application mécanique CELESTE
