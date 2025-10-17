@@ -1,3 +1,5 @@
+import base64
+import binascii
 import os
 import sys
 from dataclasses import dataclass

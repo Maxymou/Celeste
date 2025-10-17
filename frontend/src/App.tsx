@@ -23,7 +23,7 @@ const projects = [
     title: '150kV Bastillac - Jurançon',
     range: 'Du 102 au 108',
     pylons: '12 pylônes',
-    note: 'Changement d’isolateurs aux pylônes 15 et 17',
+    note: 'Changement d'isolateurs aux pylônes 15 et 17',
     updated: 'Mise à jour le 7 Juin 2025',
   },
   {
@@ -46,7 +46,7 @@ type NavItem = {
 }
 
 const navItems: NavItem[] = [
-  { id: 'home', label: 'Accueil', icon: HomeIcon, isActive: true, ariaLabel: 'Revenir à l’accueil' },
+  { id: 'home', label: 'Accueil', icon: HomeIcon, isActive: true, ariaLabel: 'Revenir à l'accueil' },
   { id: 'cables', label: 'Câbles', icon: CableIcon, ariaLabel: 'Accéder aux câbles' },
   { id: 'create', label: 'Nouveau chantier', icon: PlusIcon, variant: 'primary', ariaLabel: 'Créer un nouveau chantier' },
   { id: 'pylons', label: 'Pylônes', icon: PylonIcon, ariaLabel: 'Consulter les pylônes' },
