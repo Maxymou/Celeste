@@ -1,7 +1,12 @@
+import base64
+import binascii
 import os
 import sys
 from pathlib import Path
-from fastapi import FastAPI, Depends, HTTPException, status
+from typing import Optional, Tuple
+
+from fastapi import Depends, FastAPI, HTTPException, Request, status
+from fastapi.responses import JSONResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -25,18 +30,71 @@ app = FastAPI(title="CELESTE X — DB Admin")
 security = HTTPBasic()
 
 
+def _admin_credentials() -> Tuple[Optional[str], Optional[str]]:
+    """Retrieve the configured admin credentials from the environment."""
+    return os.getenv("ADMIN_USER"), os.getenv("ADMIN_PASS")
+
+
+def _credentials_valid(username: str, password: str) -> bool:
+    expected_user, expected_password = _admin_credentials()
+    return bool(
+        expected_user
+        and expected_password
+        and username == expected_user
+        and password == expected_password
+    )
+
+
+def _parse_basic_auth_header(header: Optional[str]) -> Optional[Tuple[str, str]]:
+    if not header:
+        return None
+
+    scheme, _, encoded = header.partition(" ")
+    if scheme.lower() != "basic" or not encoded:
+        return None
+
+    try:
+        decoded = base64.b64decode(encoded).decode()
+    except (binascii.Error, UnicodeDecodeError):
+        return None
+
+    if ":" not in decoded:
+        return None
+
+    username, password = decoded.split(":", 1)
+    return username, password
+
+
+def _unauthorized_response() -> JSONResponse:
+    return JSONResponse(
+        {"detail": "Unauthorized"},
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        headers={"WWW-Authenticate": "Basic"},
+    )
+
+
 def require_basic(credentials: HTTPBasicCredentials = Depends(security)):
     """Authentification Basic Auth"""
-    user = os.getenv("ADMIN_USER")
-    pwd = os.getenv("ADMIN_PASS")
-    
-    if not user or not pwd or credentials.username != user or credentials.password != pwd:
+    if not _credentials_valid(credentials.username, credentials.password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Unauthorized",
-            headers={"WWW-Authenticate": "Basic"}
+            headers={"WWW-Authenticate": "Basic"},
         )
     return True
+
+
+@app.middleware("http")
+async def enforce_basic_auth(request: Request, call_next):
+    """Protect the SQLAdmin interface with HTTP Basic authentication."""
+    # SQLAdmin serves the entire interface from the root path. Every request must
+    # include valid credentials to avoid exposing the database over the network.
+    credentials = _parse_basic_auth_header(request.headers.get("Authorization"))
+
+    if not credentials or not _credentials_valid(*credentials):
+        return _unauthorized_response()
+
+    return await call_next(request)
 
 
 @app.get("/admin/health")
@@ -89,8 +147,6 @@ admin = Admin(
     engine,
     title="CELESTE X — Admin",
     base_url="/",
-    templates_dir=None,
-    csrf_secret=os.getenv("ADMIN_SECRET", "change-me")
 )
 
 admin.add_view(CableAdmin)
