@@ -98,7 +98,23 @@ cd "$INSTALL_DIR"
 
 # Configuration du frontend
 echo -e "${YELLOW}Configuration du frontend...${NC}"
-sudo -u "$SERVICE_USER" bash -c "cd frontend && npm ci && npm run build"
+echo -e "${BLUE}Nettoyage des dépendances existantes...${NC}"
+sudo -u "$SERVICE_USER" bash -c "cd frontend && rm -rf node_modules package-lock.json"
+
+echo -e "${BLUE}Installation des dépendances...${NC}"
+sudo -u "$SERVICE_USER" bash -c "cd frontend && npm install"
+
+echo -e "${BLUE}Build de production...${NC}"
+sudo -u "$SERVICE_USER" bash -c "cd frontend && npm run build"
+
+# Vérifier que le build a réussi
+if [ ! -f "$INSTALL_DIR/frontend/dist/index.html" ]; then
+    echo -e "${RED}Erreur: Le build frontend a échoué${NC}"
+    echo -e "${RED}Fichier index.html non trouvé dans frontend/dist/${NC}"
+    exit 1
+fi
+
+echo -e "${GREEN}✓ Build frontend réussi${NC}"
 
 # Configuration du backend
 echo -e "${YELLOW}Configuration du backend...${NC}"
@@ -120,63 +136,91 @@ sudo -u "$SERVICE_USER" sed -i "s|ADMIN_SECRET=change-me|ADMIN_SECRET=$ADMIN_SEC
 
 # Installation des services systemd
 echo -e "${YELLOW}Installation des services systemd...${NC}"
-sudo cp systemd/celestex.service /etc/systemd/system/
-sudo cp systemd/celestex-admin.service /etc/systemd/system/
 
-# Mettre à jour les chemins dans les services
-sudo sed -i "s|/opt/celestex|$INSTALL_DIR|g" /etc/systemd/system/celestex.service
-sudo sed -i "s|/opt/celestex|$INSTALL_DIR|g" /etc/systemd/system/celestex-admin.service
+# Service principal
+sudo tee /etc/systemd/system/celestex.service > /dev/null <<EOF
+[Unit]
+Description=CELESTE X Application
+After=network.target
 
-# Recharger systemd et activer les services
-sudo systemctl daemon-reload
-sudo systemctl enable celestex
-sudo systemctl enable celestex-admin
+[Service]
+Type=simple
+User=$SERVICE_USER
+WorkingDirectory=$INSTALL_DIR
+EnvironmentFile=$INSTALL_DIR/.env
+ExecStart=$INSTALL_DIR/.venv/bin/uvicorn backend.main:app --host 0.0.0.0 --port 6000
+Restart=always
+RestartSec=10
 
-# Démarrer les services
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# Service admin
+sudo tee /etc/systemd/system/celestex-admin.service > /dev/null <<EOF
+[Unit]
+Description=CELESTE X Admin Dashboard
+After=network.target
+
+[Service]
+Type=simple
+User=$SERVICE_USER
+WorkingDirectory=$INSTALL_DIR/backend_admin
+EnvironmentFile=$INSTALL_DIR/.env
+ExecStart=$INSTALL_DIR/.venv/bin/uvicorn main:app --host 127.0.0.1 --port 8000
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# Recharger systemd et démarrer les services
 echo -e "${YELLOW}Démarrage des services...${NC}"
-sudo systemctl start celestex
-sudo systemctl start celestex-admin
+sudo systemctl daemon-reload
+sudo systemctl enable celestex celestex-admin
+sudo systemctl start celestex celestex-admin
 
 # Attendre que les services démarrent
 sleep 3
 
-# Vérifier le statut des services
-echo -e "${YELLOW}Vérification du statut des services...${NC}"
-if sudo systemctl is-active --quiet celestex; then
-    echo -e "${GREEN}✓ Service celestex démarré avec succès${NC}"
+# Vérifier que les services fonctionnent
+echo -e "${YELLOW}Vérification des services...${NC}"
+if systemctl is-active --quiet celestex; then
+    echo -e "${GREEN}✓ Service celestex démarré${NC}"
 else
-    echo -e "${RED}✗ Erreur lors du démarrage du service celestex${NC}"
-    sudo systemctl status celestex
+    echo -e "${RED}✗ Service celestex non démarré${NC}"
+    sudo journalctl -u celestex -n 20
 fi
 
-if sudo systemctl is-active --quiet celestex-admin; then
-    echo -e "${GREEN}✓ Service celestex-admin démarré avec succès${NC}"
+if systemctl is-active --quiet celestex-admin; then
+    echo -e "${GREEN}✓ Service celestex-admin démarré${NC}"
 else
-    echo -e "${RED}✗ Erreur lors du démarrage du service celestex-admin${NC}"
-    sudo systemctl status celestex-admin
+    echo -e "${RED}✗ Service celestex-admin non démarré${NC}"
+    sudo journalctl -u celestex-admin -n 20
 fi
 
-# Obtenir l'IP de la machine
+# Obtenir l'IP
 IP=$(hostname -I | awk '{print $1}')
 
+echo ""
 echo -e "${GREEN}========================================${NC}"
 echo -e "${GREEN}    Installation terminée !${NC}"
 echo -e "${GREEN}========================================${NC}"
-echo -e "${BLUE}Application principale:${NC} http://$IP:6000"
-echo -e "${BLUE}Admin dashboard:${NC}      http://$IP:8000"
-echo -e "${BLUE}Identifiants admin:${NC}   $ADMIN_USER / $ADMIN_PASS"
 echo ""
-echo -e "${YELLOW}Commandes utiles:${NC}"
+echo -e "${BLUE}Accès à l'application:${NC}"
+echo -e "  Application: http://$IP:6000"
+echo -e "  Admin:       http://$IP:8000"
+echo ""
+echo -e "${BLUE}Identifiants admin:${NC}"
+echo -e "  Utilisateur: $ADMIN_USER"
+echo -e "  Mot de passe: $ADMIN_PASS"
+echo ""
+echo -e "${YELLOW}⚠️  Pensez à changer le mot de passe admin en production !${NC}"
+echo ""
+echo -e "${BLUE}Commandes utiles:${NC}"
 echo "  sudo systemctl status celestex"
-echo "  sudo systemctl status celestex-admin"
 echo "  sudo systemctl restart celestex"
-echo "  sudo systemctl restart celestex-admin"
 echo "  sudo journalctl -u celestex -f"
-echo "  sudo journalctl -u celestex-admin -f"
 echo ""
-echo -e "${YELLOW}Pour mettre à jour:${NC}"
-echo "  cd $INSTALL_DIR"
-echo "  sudo -u $SERVICE_USER git pull"
-echo "  sudo -u $SERVICE_USER bash -c 'cd frontend && npm ci && npm run build'"
-echo "  sudo -u $SERVICE_USER bash -c 'source .venv/bin/activate && pip install -r backend/requirements.txt'"
-echo "  sudo systemctl restart celestex celestex-admin"
+echo -e "${GREEN}Installation réussie ! 🎉${NC}"
