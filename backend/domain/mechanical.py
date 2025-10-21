@@ -254,48 +254,72 @@ class MechanicalCalculator:
     ) -> SpanResult:
         """
         Calcul complet d'une portée
-        
+
         Args:
             geometry: Géométrie de la portée
             cable: Propriétés du câble
             rho: Paramètre de la chaînette (m)
             wind_pressure_daPa: Pression du vent (daPa), optionnel
             angle_grade: Angle topographique (grades), optionnel
-        
+
         Returns:
             SpanResult avec tous les résultats et validations
         """
         warnings = []
         errors = []
-        
+
         # Validation du vent
         if wind_pressure_daPa and wind_pressure_daPa > 36:
             warnings.append(
                 f"⚠️ Vent de {wind_pressure_daPa} daPa > 36 daPa "
                 "(au-delà des conditions CELESTE)"
             )
-        
+
         # Validation de l'angle
         if angle_grade and abs(angle_grade) > 15:
             warnings.append(
                 f"⚠️ Angle de {angle_grade} grades > 15 grades "
                 "(au-delà des conditions CELESTE)"
             )
-        
+
         # Calcul de la corde
         b = geometry.b
-        
+
         # Calcul des flèches
         F1, F2, H = cls.calculate_sag(geometry, rho)
-        
+
         # Calcul des tensions
         T0, TA, TB = cls.calculate_tensions(geometry, cable, rho)
-        
+
         # Arrondi à 1 daN comme spécifié
         T0 = round(T0)
         TA = round(TA)
         TB = round(TB)
-        
+
+        # Validation métier : vérifier que les tensions ne dépassent pas la charge de rupture
+        max_tension = max(T0, TA, TB)
+        if max_tension > cable.rupture_dan:
+            errors.append(
+                f"❌ Tension maximale ({max_tension} daN) dépasse la charge de rupture "
+                f"du câble ({cable.rupture_dan} daN). Calcul non valide !"
+            )
+        elif max_tension > cable.rupture_dan * 0.9:
+            # Warning si on est à plus de 90% de la charge de rupture
+            warnings.append(
+                f"⚠️ Tension maximale ({max_tension} daN) proche de la charge de rupture "
+                f"({cable.rupture_dan} daN). Marge de sécurité faible."
+            )
+
+        # Validation métier : vérifier que rho est dans une plage réaliste
+        if rho < 100:
+            warnings.append(
+                f"⚠️ Paramètre ρ très faible ({rho} m). Vérifiez la valeur."
+            )
+        elif rho > 10000:
+            warnings.append(
+                f"⚠️ Paramètre ρ très élevé ({rho} m). Vérifiez la valeur."
+            )
+
         return SpanResult(
             b=round(b, 2),
             F1=round(F1, 2),

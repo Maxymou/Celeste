@@ -69,7 +69,8 @@ export default function SpanCalculator() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<SpanResult | null>(null);
   const [error, setError] = useState<string | null>(null);
-  
+  const [cables, setCables] = useState<CableData[]>(CABLES_PRESETS);
+
   // Form state
   const [spanLength, setSpanLength] = useState('500');
   const [deltaH, setDeltaH] = useState('10');
@@ -78,7 +79,73 @@ export default function SpanCalculator() {
   const [windPressure, setWindPressure] = useState('');
   const [angle, setAngle] = useState('');
 
+  // Validation errors
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+
+  // Charger les câbles depuis l'API au montage du composant
+  React.useEffect(() => {
+    fetch('/api/cables')
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.cables.length > 0) {
+          setCables(data.cables);
+          setSelectedCable(data.cables[0]);
+        }
+      })
+      .catch(() => {
+        // En cas d'erreur, on garde les câbles hardcodés
+        console.warn('Impossible de charger les câbles depuis l\'API, utilisation des valeurs par défaut');
+      });
+  }, []);
+
+  const validateForm = (): boolean => {
+    const errors: Record<string, string> = {};
+
+    // Validation de la longueur de portée
+    const spanLengthNum = parseFloat(spanLength);
+    if (isNaN(spanLengthNum) || spanLengthNum <= 0) {
+      errors.spanLength = 'La longueur de portée doit être un nombre positif';
+    } else if (spanLengthNum > 10000) {
+      errors.spanLength = 'La longueur de portée semble trop élevée (max 10000m)';
+    }
+
+    // Validation de rho
+    const rhoNum = parseFloat(rho);
+    if (isNaN(rhoNum) || rhoNum <= 0) {
+      errors.rho = 'Le paramètre ρ doit être un nombre positif';
+    } else if (rhoNum < 100) {
+      errors.rho = 'Le paramètre ρ semble trop faible (min 100m recommandé)';
+    } else if (rhoNum > 10000) {
+      errors.rho = 'Le paramètre ρ semble trop élevé (max 10000m recommandé)';
+    }
+
+    // Validation du vent (si renseigné)
+    if (windPressure) {
+      const windNum = parseFloat(windPressure);
+      if (isNaN(windNum) || windNum < 0) {
+        errors.windPressure = 'La pression du vent doit être un nombre positif';
+      }
+    }
+
+    // Validation de l'angle (si renseigné)
+    if (angle) {
+      const angleNum = parseFloat(angle);
+      if (isNaN(angleNum)) {
+        errors.angle = 'L\'angle topographique doit être un nombre';
+      }
+    }
+
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleCalculate = async () => {
+    // Valider le formulaire avant de soumettre
+    if (!validateForm()) {
+      setError('Veuillez corriger les erreurs de saisie');
+      return;
+    }
+
     setLoading(true);
     setError(null);
     setResult(null);
@@ -100,11 +167,12 @@ export default function SpanCalculator() {
       });
 
       if (!response.ok) {
-        throw new Error(`Erreur HTTP: ${response.status}`);
+        const errorData = await response.json().catch(() => null);
+        throw new Error(errorData?.message || `Erreur HTTP: ${response.status}`);
       }
 
       const data = await response.json();
-      
+
       if (data.success) {
         setResult(data.result);
       } else {
@@ -141,12 +209,12 @@ export default function SpanCalculator() {
                 <select
                   value={selectedCable.name}
                   onChange={(e) => {
-                    const cable = CABLES_PRESETS.find(c => c.name === e.target.value);
+                    const cable = cables.find(c => c.name === e.target.value);
                     if (cable) setSelectedCable(cable);
                   }}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
                 >
-                  {CABLES_PRESETS.map(cable => (
+                  {cables.map(cable => (
                     <option key={cable.name} value={cable.name}>
                       {cable.name} ({cable.mass_lin_kg_per_m} kg/m)
                     </option>
@@ -163,9 +231,14 @@ export default function SpanCalculator() {
                   type="number"
                   value={spanLength}
                   onChange={(e) => setSpanLength(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                  className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 ${
+                    validationErrors.spanLength ? 'border-red-500' : 'border-gray-300'
+                  }`}
                   step="0.1"
                 />
+                {validationErrors.spanLength && (
+                  <p className="text-red-600 text-xs mt-1">{validationErrors.spanLength}</p>
+                )}
               </div>
 
               {/* Dénivelé */}
@@ -194,9 +267,14 @@ export default function SpanCalculator() {
                   type="number"
                   value={rho}
                   onChange={(e) => setRho(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                  className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 ${
+                    validationErrors.rho ? 'border-red-500' : 'border-gray-300'
+                  }`}
                   step="1"
                 />
+                {validationErrors.rho && (
+                  <p className="text-red-600 text-xs mt-1">{validationErrors.rho}</p>
+                )}
               </div>
 
               {/* Optionnels */}
