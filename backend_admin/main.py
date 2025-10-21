@@ -1,5 +1,6 @@
 import base64
 import binascii
+import logging
 import os
 import sys
 from dataclasses import dataclass
@@ -17,6 +18,11 @@ from starlette.middleware.sessions import SessionMiddleware
 # Ajouter le chemin parent pour importer les modèles
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from backend.models.db_models import Base, Cable, Layer  # noqa: E402
+from backend.security import verify_password  # noqa: E402
+
+# Configuration du logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -82,14 +88,30 @@ security = HTTPBasic(auto_error=False)
 
 
 def _credentials_valid(username: Optional[str], password: Optional[str]) -> bool:
-    """Compare les identifiants fournis avec ceux de la configuration."""
+    """
+    Compare les identifiants fournis avec ceux de la configuration.
 
-    return bool(
-        username
-        and password
-        and username == settings.admin_user
-        and password == settings.admin_pass
-    )
+    Supporte deux formats :
+    - Hash bcrypt (commence par $2b$) : vérification sécurisée
+    - Mot de passe en clair : comparaison directe (déprécié)
+    """
+    if not username or not password:
+        return False
+
+    if username != settings.admin_user:
+        return False
+
+    # Détecter si le mot de passe stocké est hashé (bcrypt commence par $2b$ ou $2a$)
+    if settings.admin_pass.startswith(("$2b$", "$2a$")):
+        # Vérification avec hash bcrypt
+        return verify_password(password, settings.admin_pass)
+    else:
+        # Compatibilité avec mot de passe en clair (déprécié)
+        logger.warning(
+            "SÉCURITÉ: Le mot de passe admin est stocké en clair. "
+            "Utilisez 'python -m backend.security' pour générer un hash bcrypt."
+        )
+        return password == settings.admin_pass
 
 
 async def require_basic(credentials: Optional[HTTPBasicCredentials] = Depends(security)):

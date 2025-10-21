@@ -1,8 +1,9 @@
+import logging
 from pathlib import Path
-from fastapi import FastAPI, APIRouter, Request, HTTPException, Query
-from fastapi.responses import FileResponse
+from fastapi import FastAPI, APIRouter, Request, HTTPException, Query, status
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ValidationError as PydanticValidationError
 from typing import Optional
 
 from backend.domain.mechanical import (
@@ -11,6 +12,18 @@ from backend.domain.mechanical import (
     SpanGeometry,
     span_result_to_dict
 )
+from backend.exceptions import (
+    CelesteException,
+    ValidationError,
+    CalculationError
+)
+
+# Configuration du logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="CELESTE X",
@@ -18,6 +31,62 @@ app = FastAPI(
     version="1.0.0"
 )
 api = APIRouter(prefix="/api")
+
+
+# ===== EXCEPTION HANDLERS =====
+
+@app.exception_handler(CelesteException)
+async def celeste_exception_handler(request: Request, exc: CelesteException):
+    """Handler pour les exceptions métier CELESTE"""
+    logger.error(f"Erreur métier: {exc.message}", extra={"details": exc.details})
+    return JSONResponse(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        content={
+            "error": exc.message,
+            "details": exc.details
+        }
+    )
+
+
+@app.exception_handler(ValidationError)
+async def validation_exception_handler(request: Request, exc: ValidationError):
+    """Handler pour les erreurs de validation métier"""
+    logger.warning(f"Erreur de validation: {exc.message}")
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content={
+            "error": "Validation error",
+            "message": exc.message,
+            "details": exc.details
+        }
+    )
+
+
+@app.exception_handler(CalculationError)
+async def calculation_exception_handler(request: Request, exc: CalculationError):
+    """Handler pour les erreurs de calcul"""
+    logger.error(f"Erreur de calcul: {exc.message}", extra={"details": exc.details})
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={
+            "error": "Calculation error",
+            "message": exc.message,
+            "details": exc.details
+        }
+    )
+
+
+@app.exception_handler(Exception)
+async def generic_exception_handler(request: Request, exc: Exception):
+    """Handler pour les exceptions non gérées"""
+    logger.exception(f"Erreur inattendue: {str(exc)}")
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={
+            "error": "Internal server error",
+            "message": "Une erreur inattendue s'est produite"
+        }
+    )
 
 
 # ===== MODÈLES DE DONNÉES =====
@@ -78,23 +147,84 @@ def health():
     return {"status": "ok", "version": "1.0.0"}
 
 
+@api.get("/cables")
+def get_cables():
+    """
+    Récupère la liste des câbles disponibles
+
+    Retourne:
+        Liste des câbles avec leurs propriétés mécaniques
+    """
+    logger.info("Récupération de la liste des câbles")
+
+    # Pour l'instant, retourne les câbles hardcodés
+    # TODO: À remplacer par une requête SQL quand la base sera peuplée
+    cables = [
+        {
+            "name": "Aster 570",
+            "mass_lin_kg_per_m": 1.631,
+            "E_MPa": 78000,
+            "section_mm2": 564.6,
+            "alpha_1e6_per_C": 19.1,
+            "rupture_dan": 17200,
+            "diameter_mm": 31.5,
+            "type": "ACSR"
+        },
+        {
+            "name": "Pétunia 612",
+            "mass_lin_kg_per_m": 2.311,
+            "E_MPa": 63000,
+            "section_mm2": 612.0,
+            "alpha_1e6_per_C": 20.5,
+            "rupture_dan": 19800,
+            "diameter_mm": 34.8,
+            "type": "ACSR"
+        },
+        {
+            "name": "Phlox 228",
+            "mass_lin_kg_per_m": 0.776,
+            "E_MPa": 74000,
+            "section_mm2": 228.0,
+            "alpha_1e6_per_C": 19.3,
+            "rupture_dan": 7200,
+            "diameter_mm": 21.8,
+            "type": "ACSR"
+        }
+    ]
+
+    return {
+        "success": True,
+        "count": len(cables),
+        "cables": cables
+    }
+
+
 @api.post("/calc/span")
 def calc_span(payload: SpanCalcInput):
     """
     Calcul complet d'une portée
-    
+
     Retourne:
         - Géométrie (corde, flèches)
         - Tensions (T0, TA, TB)
         - Avertissements et erreurs
     """
+    logger.info(f"Calcul de portée: {payload.span_length_m}m, dénivelé: {payload.delta_h_m}m")
+
     try:
+        # Validation des entrées
+        if payload.rho_m <= 0:
+            raise ValidationError(
+                "Le paramètre ρ (rho) doit être strictement positif",
+                {"rho_m": payload.rho_m}
+            )
+
         # Conversion des données
         geometry = SpanGeometry(
             a=payload.span_length_m,
             h=payload.delta_h_m
         )
-        
+
         cable = CableProperties(
             name=payload.cable.name,
             mass_lin_kg_per_m=payload.cable.mass_lin_kg_per_m,
@@ -104,7 +234,7 @@ def calc_span(payload: SpanCalcInput):
             rupture_dan=payload.cable.rupture_dan,
             diameter_mm=payload.cable.diameter_mm
         )
-        
+
         # Calcul
         result = MechanicalCalculator.calculate_span(
             geometry=geometry,
@@ -113,15 +243,22 @@ def calc_span(payload: SpanCalcInput):
             wind_pressure_daPa=payload.wind_pressure_daPa,
             angle_grade=payload.angle_topo_grade
         )
-        
+
+        logger.info(f"Calcul réussi: T0={result.T0} daN, warnings={len(result.warnings)}")
+
         return {
             "success": True,
             "input": payload.dict(),
             "result": span_result_to_dict(result)
         }
-        
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+
+    except (ValidationError, CalculationError):
+        # Re-lever les exceptions métier pour qu'elles soient gérées par les handlers
+        raise
+    except ValueError as e:
+        raise ValidationError(f"Valeur invalide: {str(e)}")
+    except ZeroDivisionError:
+        raise CalculationError("Division par zéro dans le calcul", {"cable": payload.cable.name})
 
 
 @api.post("/calc/equivalent-span")
