@@ -1,5 +1,7 @@
-import React from 'react'
+import React, { useState } from 'react'
 import './styles/App.css'
+import { AuthProvider, useAuth } from './contexts/AuthContext'
+import Login from './components/Login'
 
 const projects = [
   {
@@ -53,7 +55,15 @@ const navItems: NavItem[] = [
   { id: 'papoto', label: 'PAPOTO', icon: PapotoIcon, ariaLabel: 'Ouvrir la page PAPOTO' },
 ]
 
-export default function App() {
+function Dashboard() {
+  const { logout, userEmail } = useAuth();
+  const [showLogoutMenu, setShowLogoutMenu] = useState(false);
+
+  const handleLogout = () => {
+    logout();
+    setShowLogoutMenu(false);
+  };
+
   return (
     <div className="app-screen">
       <header className="screen-header">
@@ -68,9 +78,29 @@ export default function App() {
           <span className="app-title">CELESTE</span>
         </div>
 
-        <button type="button" className="icon-button profile-button" aria-label="Voir le profil">
-          <ProfileIcon />
-        </button>
+        <div className="profile-menu-container">
+          <button
+            type="button"
+            className="icon-button profile-button"
+            aria-label="Voir le profil"
+            onClick={() => setShowLogoutMenu(!showLogoutMenu)}
+          >
+            <ProfileIcon />
+          </button>
+
+          {showLogoutMenu && (
+            <div className="profile-dropdown">
+              <div className="profile-email">{userEmail}</div>
+              <button
+                type="button"
+                className="logout-button"
+                onClick={handleLogout}
+              >
+                Déconnexion
+              </button>
+            </div>
+          )}
+        </div>
       </header>
 
       <main className="screen-content" role="main">
@@ -120,6 +150,24 @@ export default function App() {
       </nav>
     </div>
   )
+}
+
+function AppContent() {
+  const { isAuthenticated, login } = useAuth();
+
+  if (!isAuthenticated) {
+    return <Login onLoginSuccess={login} />;
+  }
+
+  return <Dashboard />;
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
+  );
 }
 
 function MenuIcon() {
