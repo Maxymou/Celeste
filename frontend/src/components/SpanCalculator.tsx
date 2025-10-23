@@ -190,7 +190,7 @@ export default function SpanCalculator() {
       <div className="bg-white rounded-lg shadow-lg">
         <div className="bg-blue-600 text-white px-6 py-4 rounded-t-lg">
           <h1 className="text-2xl font-bold">Calculateur de Portée</h1>
-          <p className="text-blue-100 text-sm mt-1">Calculs mécaniques selon RTE</p>
+          <p className="text-blue-100 text-sm mt-1">Calculs mécaniques pour lignes électriques</p>
         </div>
 
         <div className="p-6">
