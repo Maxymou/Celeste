@@ -153,7 +153,30 @@ function Dashboard() {
 }
 
 function AppContent() {
-  const { isAuthenticated, login } = useAuth();
+  const { isAuthenticated, login, isLoading } = useAuth();
+
+  // Afficher un écran de chargement pendant la vérification du token
+  if (isLoading) {
+    return (
+      <div className="loading-container">
+        <div className="loading-spinner">
+          <svg viewBox="0 0 24 24" className="spinner-icon">
+            <circle
+              cx="12"
+              cy="12"
+              r="10"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="3"
+              strokeDasharray="31.4 31.4"
+              strokeLinecap="round"
+            />
+          </svg>
+        </div>
+        <p className="loading-text">Chargement...</p>
+      </div>
+    );
+  }
 
   if (!isAuthenticated) {
     return <Login onLoginSuccess={login} />;
