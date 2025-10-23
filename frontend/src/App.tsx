@@ -1,185 +1,278 @@
-import { useMemo, useState } from "react";
+import React, { useState } from 'react'
+import './styles/App.css'
+import { AuthProvider, useAuth } from './contexts/AuthContext'
+import Login from './components/Login'
 
-import "./App.css";
-
-const TABS = ["Canton", "Portée", "Support", "Câble", "Température"] as const;
-
-type Tab = (typeof TABS)[number];
-
-type HealthStatus = {
-  status: string;
-};
-
-type Project = {
-  id: number;
-  title: string;
-  range: string;
-  pylons: string;
-  description: string;
-  updatedAt: string;
-};
-
-const PROJECTS: Project[] = [
+const projects = [
   {
     id: 1,
-    title: "63kV Asasp - Legugnon",
-    range: "Du 92 au 100",
-    pylons: "8 pylônes",
-    description: "Proximité géométrique dans la portée 93-94",
-    updatedAt: "Mise à jour le 10 Octobre 2025",
+    title: '63kV Asasp - Legugnon',
+    range: 'Du 92 au 100',
+    pylons: '8 pylônes',
+    note: 'Proximité géométrique dans la portée 93',
+    updated: 'Mise à jour le 12 Octobre 2025',
   },
   {
     id: 2,
-    title: "63kV Aire - Hagetmau",
-    range: "Du 102 au 118",
-    pylons: "12 pylônes",
-    description: "Raccordement prévu le 15 septembre 2025",
-    updatedAt: "Mise à jour le 7 Juin 2025",
+    title: '63kV Aire - Hagetmau',
+    range: 'Du 13 au 20',
+    pylons: '12 pylônes',
+    note: 'Maintenance dans la portée 16-17',
+    updated: 'Mise à jour le 12 Septembre 2025',
   },
   {
     id: 3,
-    title: "150kV Bastillac - Jurançon",
-    range: "Du 18 au 32",
-    pylons: "16 pylônes",
-    description: "Changement d'isolateurs aux pylônes 15, 16 et 17",
-    updatedAt: "Mise à jour le 27 Mai 2025",
+    title: '150kV Bastillac - Jurançon',
+    range: 'Du 102 au 108',
+    pylons: '12 pylônes',
+    note: "Changement d'isolateurs aux pylônes 15 et 17",
+    updated: 'Mise à jour le 7 Juin 2025',
   },
   {
     id: 4,
-    title: "225kV Berge - Marsillon",
-    range: "Du 10 au 32",
-    pylons: "18 pylônes",
-    description: "Inspection thermique programmée",
-    updatedAt: "Mise à jour le 12 Avril 2025",
+    title: '225kV Berge - Marsillon',
+    range: 'Du 10 au 32',
+    pylons: '12 pylônes',
+    note: 'Inspection préventive sur la portée 18',
+    updated: 'Mise à jour le 5 Mai 2025',
   },
-];
+]
 
-function App() {
-  const [activeTab, setActiveTab] = useState<Tab>(TABS[0]);
-  const [loading, setLoading] = useState(false);
-  const [healthMessage, setHealthMessage] = useState<string | null>(null);
-  const tabDescription = useMemo(
-    () => `La section ${activeTab.toLowerCase()} sera bientôt disponible.`,
-    [activeTab],
-  );
+type NavItem = {
+  id: string
+  label: string
+  icon: () => JSX.Element
+  variant?: 'primary'
+  isActive?: boolean
+  ariaLabel?: string
+}
 
-  const runHealthCheck = async () => {
-    setLoading(true);
-    setHealthMessage(null);
-    try {
-      const response = await fetch("/api/health");
-      if (!response.ok) {
-        throw new Error(`Erreur ${response.status}`);
-      }
-      const data = (await response.json()) as HealthStatus;
-      setHealthMessage(`API status: ${data.status}`);
-    } catch (error) {
-      if (error instanceof Error) {
-        setHealthMessage(`Échec du contrôle: ${error.message}`);
-      } else {
-        setHealthMessage("Échec du contrôle: erreur inconnue");
-      }
-    } finally {
-      setLoading(false);
-    }
+const navItems: NavItem[] = [
+  { id: 'home', label: 'Accueil', icon: HomeIcon, isActive: true, ariaLabel: "Revenir à l'accueil" },
+  { id: 'cables', label: 'Câbles', icon: CableIcon, ariaLabel: 'Accéder aux câbles' },
+  { id: 'create', label: 'Nouveau chantier', icon: PlusIcon, variant: 'primary', ariaLabel: 'Créer un nouveau chantier' },
+  { id: 'pylons', label: 'Pylônes', icon: PylonIcon, ariaLabel: "Consulter les pylônes" },
+  { id: 'papoto', label: 'PAPOTO', icon: PapotoIcon, ariaLabel: 'Ouvrir la page PAPOTO' },
+]
+
+function Dashboard() {
+  const { logout, userEmail } = useAuth();
+  const [showLogoutMenu, setShowLogoutMenu] = useState(false);
+
+  const handleLogout = () => {
+    logout();
+    setShowLogoutMenu(false);
   };
 
   return (
-    <div className="app">
-      <div className="screen">
-        <header className="app-header">
-          <div className="app-branding">
-            <span className="app-subtitle">Celeste</span>
-            <h1>Mes chantiers</h1>
-          </div>
-          <button className="profile" type="button" aria-label="Mon profil">
-            <span>MB</span>
-          </button>
-        </header>
+    <div className="app-screen">
+      <header className="screen-header">
+        <button type="button" className="icon-button" aria-label="Ouvrir le menu">
+          <MenuIcon />
+        </button>
 
-        <section className="tab-section" aria-label="Sections de l'application">
-          <div className="tab-row">
-            {TABS.map((tab) => (
-              <button
-                key={tab}
-                className={tab === activeTab ? "chip active" : "chip"}
-                onClick={() => setActiveTab(tab)}
-                type="button"
-              >
-                {tab}
-              </button>
-            ))}
-          </div>
-          <p className="tab-description">{tabDescription}</p>
-        </section>
+        <div className="header-title-block">
+          <time className="screen-clock" dateTime="09:41" aria-hidden="true">
+            9:41
+          </time>
+          <span className="app-title">CELESTE</span>
+        </div>
 
-        <section className="projects" aria-labelledby="projects-title">
-          <h2 id="projects-title" className="sr-only">
-            Liste des chantiers
-          </h2>
-          <div className="project-list">
-            {PROJECTS.map((project) => (
-              <article key={project.id} className="project-card">
-                <header className="project-header">
-                  <p className="project-voltage">{project.title}</p>
-                  <span className="project-pylons">{project.pylons}</span>
-                </header>
-                <div className="project-body">
-                  <p className="project-range">{project.range}</p>
-                  <p className="project-description">{project.description}</p>
-                </div>
-                <footer className="project-footer">{project.updatedAt}</footer>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section className="health" aria-live="polite">
+        <div className="profile-menu-container">
           <button
-            className="health-button"
             type="button"
-            onClick={runHealthCheck}
-            disabled={loading}
+            className="icon-button profile-button"
+            aria-label="Voir le profil"
+            onClick={() => setShowLogoutMenu(!showLogoutMenu)}
           >
-            {loading ? "Vérification..." : "Health check"}
+            <ProfileIcon />
           </button>
-          {healthMessage && <p className="health-message">{healthMessage}</p>}
-        </section>
-      </div>
 
-      <button className="fab" type="button" aria-label="Ajouter un chantier">
-        <span>+</span>
-      </button>
+          {showLogoutMenu && (
+            <div className="profile-dropdown">
+              <div className="profile-email">{userEmail}</div>
+              <button
+                type="button"
+                className="logout-button"
+                onClick={handleLogout}
+              >
+                Déconnexion
+              </button>
+            </div>
+          )}
+        </div>
+      </header>
+
+      <main className="screen-content" role="main">
+        <section className="section-heading" aria-label="Chantiers en cours">
+          <h2>Mes chantiers</h2>
+        </section>
+
+        <section className="projects-list">
+          {projects.map((project) => (
+            <article key={project.id} className="project-card">
+              <header className="project-card-header">
+                <h3>{project.title}</h3>
+                <span className="project-pylons">{project.pylons}</span>
+              </header>
+              <p className="project-range">{project.range}</p>
+              <p className="project-note">{project.note}</p>
+              <p className="project-updated">{project.updated}</p>
+            </article>
+          ))}
+        </section>
+      </main>
 
       <nav className="bottom-nav" aria-label="Navigation principale">
-        <button className="nav-item active" type="button">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M3 10.5 12 3l9 7.5V21H3z" />
-          </svg>
-          <span>Accueil</span>
-        </button>
-        <button className="nav-item" type="button">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M12 4 2 20h20zm0 4.3L17.74 18H6.26z" />
-          </svg>
-          <span>Favoris</span>
-        </button>
-        <div className="nav-spacer" aria-hidden="true" />
-        <button className="nav-item" type="button">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M12 22a2 2 0 0 0 2-2h-4a2 2 0 0 0 2 2Zm6.36-6A7 7 0 0 0 19 10V8a7 7 0 1 0-14 0v2a7 7 0 0 0 .64 6L4 18v1h16v-1z" />
-          </svg>
-          <span>Alerts</span>
-        </button>
-        <button className="nav-item" type="button">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Zm8 4a8 8 0 1 1-16 0 8 8 0 0 1 16 0ZM4 4.5 5.5 6A9.97 9.97 0 0 1 12 4c2.43 0 4.66.87 6.5 2l1.5-1.5" />
-          </svg>
-          <span>Profil</span>
-        </button>
+        {navItems.map(({ id, label, icon: Icon, isActive, variant, ariaLabel }) => {
+          const classes = [
+            'nav-button',
+            variant ? `nav-button--${variant}` : '',
+            isActive ? 'is-active' : '',
+          ]
+            .filter(Boolean)
+            .join(' ')
+
+          return (
+            <button
+              key={id}
+              type="button"
+              className={classes}
+              aria-current={isActive ? 'page' : undefined}
+              aria-label={ariaLabel}
+              title={label}
+            >
+              <Icon />
+              <span className="sr-only">{label}</span>
+            </button>
+          )
+        })}
       </nav>
     </div>
+  )
+}
+
+function AppContent() {
+  const { isAuthenticated, login, isLoading } = useAuth();
+
+  // Afficher un écran de chargement pendant la vérification du token
+  if (isLoading) {
+    return (
+      <div className="loading-container">
+        <div className="loading-spinner">
+          <svg viewBox="0 0 24 24" className="spinner-icon">
+            <circle
+              cx="12"
+              cy="12"
+              r="10"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="3"
+              strokeDasharray="31.4 31.4"
+              strokeLinecap="round"
+            />
+          </svg>
+        </div>
+        <p className="loading-text">Chargement...</p>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <Login onLoginSuccess={login} />;
+  }
+
+  return <Dashboard />;
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
 
-export default App;
+function MenuIcon() {
+  return (
+    <svg viewBox="0 0 24 24" role="img" aria-hidden="true" focusable="false">
+      <path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+function ProfileIcon() {
+  return (
+    <svg viewBox="0 0 24 24" role="img" aria-hidden="true" focusable="false">
+      <circle cx="12" cy="8" r="4.25" stroke="currentColor" strokeWidth="2" fill="none" />
+      <path d="M4.5 20c1.8-3.2 4.7-5 7.5-5s5.7 1.8 7.5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" fill="none" />
+    </svg>
+  )
+}
+
+function HomeIcon() {
+  return (
+    <svg viewBox="0 0 24 24" role="img" aria-hidden="true" focusable="false">
+      <path
+        d="M4.5 11.5 12 5l7.5 6.5V20a1 1 0 0 1-1 1h-5.5v-5h-3v5H5.5a1 1 0 0 1-1-1z"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinejoin="round"
+        fill="none"
+      />
+    </svg>
+  )
+}
+
+function CableIcon() {
+  return (
+    <svg viewBox="0 0 24 24" role="img" aria-hidden="true" focusable="false">
+      <path
+        d="M6 7h2.5a2.5 2.5 0 0 1 0 5H7m10-5h-2.5a2.5 2.5 0 0 0 0 5H17"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+      <path d="M7 12v6m10-6v6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+function PlusIcon() {
+  return (
+    <svg viewBox="0 0 24 24" role="img" aria-hidden="true" focusable="false">
+      <path d="M12 6v12M6 12h12" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+function PylonIcon() {
+  return (
+    <svg viewBox="0 0 24 24" role="img" aria-hidden="true" focusable="false">
+      <path
+        d="M12 3 8.5 21m3.5-18 3.5 18M7 9h10M6 13h12M5 17h14"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+    </svg>
+  )
+}
+
+function PapotoIcon() {
+  return (
+    <svg viewBox="0 0 24 24" role="img" aria-hidden="true" focusable="false">
+      <path
+        d="M6.5 5h11A2.5 2.5 0 0 1 20 7.5v5A2.5 2.5 0 0 1 17.5 15H16l-4 4v-4h-5A2.5 2.5 0 0 1 4.5 12.5v-5A2.5 2.5 0 0 1 7 5h-.5z"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinejoin="round"
+        fill="none"
+      />
+    </svg>
+  )
+}

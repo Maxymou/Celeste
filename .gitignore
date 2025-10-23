@@ -1,18 +1,43 @@
+# Python
 __pycache__/
 *.py[cod]
-*.pyo
-*.pyd
-.env
+*$py.class
+*.so
+.Python
 .venv/
 venv/
+ENV/
+env/
+
+# Node
 node_modules/
-frontend/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build outputs
 frontend/dist/
-frontend/tsconfig.tsbuildinfo
-.data/
+frontend/build/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
 .DS_Store
-coverage/
-*.sqlite3
+Thumbs.db
+
+# Database
 *.db
-celestex.db
-data/celestex.db
+*.sqlite
+*.sqlite3
+
+# Logs
+*.log
+
+# Environment
+.env
+.env.local
