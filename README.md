@@ -199,18 +199,14 @@ python -m backend.security "MonMotDePasseSecurise2025!"
 
 Sortie :
 ```
-============================================================
 Hash bcrypt généré avec succès!
-============================================================
 
 Mot de passe: MonMotDePasseSecurise2025!
 
 Hash bcrypt:
 $2b$12$xyz...
 
-============================================================
 Ajoutez cette ligne dans votre fichier .env:
-============================================================
 ADMIN_PASS=$2b$12$xyz...
 ```
 
@@ -407,7 +403,6 @@ pytest backend/tests/test_mechanical.py::test_calculate_span_complete -v
 ### Résultats attendus
 
 ```
-============================= test session starts ==============================
 collected 21 items
 
 backend/tests/test_mechanical.py::test_span_geometry_cord_length PASSED  [  4%]
@@ -415,7 +410,6 @@ backend/tests/test_mechanical.py::test_calculate_sag_horizontal_span PASSED [  9
 ...
 backend/tests/test_mechanical.py::test_calculate_span_rho_warning_high PASSED [100%]
 
-============================== 21 passed in 0.05s ==============================
 ```
 
 ### Tests couverts
