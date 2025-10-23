@@ -6,6 +6,7 @@ interface AuthContextType {
   login: (email: string, token: string) => void;
   logout: () => void;
   token: string | null;
+  isLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -14,17 +15,50 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [token, setToken] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Vérifier si un token existe au chargement
+  // Vérifier la validité du token au chargement
   useEffect(() => {
-    const storedToken = localStorage.getItem('auth_token');
-    const storedEmail = localStorage.getItem('user_email');
+    const verifyToken = async () => {
+      const storedToken = localStorage.getItem('auth_token');
+      const storedEmail = localStorage.getItem('user_email');
 
-    if (storedToken && storedEmail) {
-      setToken(storedToken);
-      setUserEmail(storedEmail);
-      setIsAuthenticated(true);
-    }
+      if (!storedToken || !storedEmail) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        // Vérifier la validité du token auprès du serveur
+        const response = await fetch('/api/auth/verify', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${storedToken}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (response.ok) {
+          // Token valide, restaurer la session
+          setToken(storedToken);
+          setUserEmail(storedEmail);
+          setIsAuthenticated(true);
+        } else {
+          // Token invalide ou expiré, nettoyer le localStorage
+          localStorage.removeItem('auth_token');
+          localStorage.removeItem('user_email');
+        }
+      } catch (error) {
+        // En cas d'erreur réseau, nettoyer également
+        console.error('Erreur de vérification du token:', error);
+        localStorage.removeItem('auth_token');
+        localStorage.removeItem('user_email');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    verifyToken();
   }, []);
 
   const login = (email: string, newToken: string) => {
@@ -44,7 +78,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, userEmail, login, logout, token }}>
+    <AuthContext.Provider value={{ isAuthenticated, userEmail, login, logout, token, isLoading }}>
       {children}
     </AuthContext.Provider>
   );

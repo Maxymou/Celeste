@@ -21,7 +21,8 @@ from backend.auth import (
     LoginRequest,
     TokenResponse,
     authenticate_user,
-    create_access_token
+    create_access_token,
+    verify_token
 )
 from datetime import timedelta
 
@@ -439,6 +440,47 @@ def login(credentials: LoginRequest):
         email=credentials.email,
         expires_at=expires_at.isoformat()
     )
+
+
+@api.get("/auth/verify")
+def verify_auth(request: Request):
+    """
+    Vérifie la validité d'un token JWT
+
+    Headers:
+        Authorization: Bearer <token>
+
+    Returns:
+        200 si le token est valide
+        401 si le token est invalide ou absent
+    """
+    # Récupérer le token depuis l'en-tête Authorization
+    auth_header = request.headers.get("Authorization")
+
+    if not auth_header or not auth_header.startswith("Bearer "):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token manquant ou format invalide"
+        )
+
+    # Extraire le token
+    token = auth_header.replace("Bearer ", "")
+
+    # Vérifier le token
+    email = verify_token(token)
+
+    if email is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token invalide ou expiré"
+        )
+
+    logger.info(f"Token vérifié avec succès pour: {email}")
+
+    return {
+        "valid": True,
+        "email": email
+    }
 
 
 app.include_router(api)
