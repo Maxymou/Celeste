@@ -17,6 +17,13 @@ from backend.exceptions import (
     ValidationError,
     CalculationError
 )
+from backend.auth import (
+    LoginRequest,
+    TokenResponse,
+    authenticate_user,
+    create_access_token
+)
+from datetime import timedelta
 
 # Configuration du logging
 logging.basicConfig(
@@ -397,6 +404,41 @@ def validate_domain(
         
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
+@api.post("/auth/login", response_model=TokenResponse)
+def login(credentials: LoginRequest):
+    """
+    Endpoint d'authentification
+
+    Authentifie un utilisateur par email (liste blanche) et génère un token JWT
+
+    Returns:
+        Token JWT et informations utilisateur
+    """
+    logger.info(f"Tentative de connexion pour: {credentials.email}")
+
+    # Authentifier l'utilisateur
+    if not authenticate_user(credentials.email, credentials.password):
+        logger.warning(f"Échec d'authentification pour: {credentials.email}")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Email ou mot de passe incorrect, ou accès non autorisé"
+        )
+
+    # Créer le token JWT
+    access_token, expires_at = create_access_token(
+        data={"sub": credentials.email},
+        expires_delta=timedelta(minutes=480)  # 8 heures
+    )
+
+    logger.info(f"Connexion réussie pour: {credentials.email}")
+
+    return TokenResponse(
+        token=access_token,
+        email=credentials.email,
+        expires_at=expires_at.isoformat()
+    )
 
 
 app.include_router(api)

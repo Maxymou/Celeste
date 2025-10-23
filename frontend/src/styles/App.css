@@ -474,3 +474,69 @@ body {
     transform: translateY(-18px);
   }
 }
+
+/* Profile menu styles */
+.profile-menu-container {
+  position: relative;
+}
+
+.profile-dropdown {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  min-width: 220px;
+  background: linear-gradient(145deg, rgba(18, 18, 18, 0.98), rgba(12, 12, 12, 0.95));
+  border: 1px solid rgba(255, 138, 31, 0.25);
+  border-radius: 18px;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.65);
+  padding: 12px;
+  z-index: 50;
+  backdrop-filter: blur(20px);
+  animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.profile-email {
+  padding: 12px 14px;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  border-bottom: 1px solid rgba(255, 138, 31, 0.15);
+  margin-bottom: 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.logout-button {
+  appearance: none;
+  width: 100%;
+  padding: 12px 14px;
+  background: rgba(255, 138, 31, 0.08);
+  border: 1px solid rgba(255, 138, 31, 0.2);
+  border-radius: 12px;
+  color: var(--accent-stronger);
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+}
+
+.logout-button:hover,
+.logout-button:focus-visible {
+  background: rgba(255, 138, 31, 0.15);
+  border-color: rgba(255, 138, 31, 0.35);
+  transform: translateY(-1px);
+  outline: none;
+}

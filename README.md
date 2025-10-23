@@ -1,6 +1,6 @@
 # CELESTE X
 
-[![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)](https://github.com/Maxymou/CELESTE/releases)
+[![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)](https://github.com/Maxymou/CELESTE/releases)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/Maxymou/CELESTE/blob/main/LICENSE)
 [![Python](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://python.org)
 [![Node.js](https://img.shields.io/badge/node.js-16%2B-green.svg)](https://nodejs.org)
@@ -13,8 +13,9 @@ Application de calcul mécanique pour lignes électriques aériennes avec valida
 ## 📋 Table des matières
 
 - [Contexte](#contexte)
-- [Nouveautés v1.1.0](#-nouveautés-v110)
+- [Nouveautés v1.2.0](#-nouveautés-v120)
 - [Architecture](#architecture)
+- [Authentification](#-authentification)
 - [Installation](#-installation-rapide)
 - [Configuration](#-configuration)
 - [Sécurité](#-sécurité)
@@ -46,9 +47,19 @@ Application de calcul mécanique pour lignes électriques aériennes avec valida
 
 ---
 
-## 🎉 Nouveautés v1.1.0
+## 🎉 Nouveautés v1.2.0
 
-### 🔐 Sécurité renforcée
+### 🔐 Authentification JWT
+- ✅ **Système d'authentification complet** avec JWT (JSON Web Tokens)
+- ✅ **Liste blanche d'emails** configurable via variables d'environnement
+- ✅ **Page de connexion** avec design dark mode cohérent
+- ✅ **Contexte d'authentification** React avec gestion de session
+- ✅ **Menu de déconnexion** dans le profil utilisateur
+- ✅ Tokens valides pendant 8 heures
+- ✅ Protection automatique des routes
+- ✅ Documentation complète dans [AUTHENTIFICATION.md](./AUTHENTIFICATION.md)
+
+### 🔐 Sécurité renforcée (v1.1.0)
 - ✅ **Hashage des mots de passe** avec bcrypt (passlib)
 - ✅ **CLI de génération de hash** : `python -m backend.security`
 - ✅ Support rétrocompatible avec warning pour mots de passe en clair
