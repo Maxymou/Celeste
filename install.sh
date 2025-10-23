@@ -27,8 +27,23 @@ fi
 INSTALL_DIR="/opt/celestex"
 SERVICE_USER="celeste"
 GITHUB_REPO="https://github.com/Maxymou/CELESTE.git"
-ADMIN_USER="admin"
-ADMIN_PASS="admin123"  # À changer en production !
+ADMIN_USER="admin@admin.fr"
+ADMIN_PASS="admin"  # À changer en production !
+
+# Générer JWT_SECRET_KEY si non défini
+if [ -z "${JWT_SECRET_KEY:-}" ]; then
+    if command -v openssl >/dev/null 2>&1; then
+        JWT_SECRET_KEY="$(openssl rand -base64 64 | tr -d '\n')"
+    else
+        JWT_SECRET_KEY="$(python3 - <<'PY'
+import secrets
+print(secrets.token_urlsafe(64))
+PY
+)"
+    fi
+fi
+
+# Générer ADMIN_SECRET si non défini
 if [ -z "${ADMIN_SECRET:-}" ]; then
     if command -v openssl >/dev/null 2>&1; then
         ADMIN_SECRET="$(openssl rand -hex 32)"
@@ -130,9 +145,10 @@ sudo -u "$SERVICE_USER" mkdir -p data
 echo -e "${YELLOW}Configuration des variables d'environnement...${NC}"
 sudo -u "$SERVICE_USER" cp env.example .env
 sudo -u "$SERVICE_USER" sed -i "s|/opt/celestex/data/celestex.db|$INSTALL_DIR/data/celestex.db|g" .env
-sudo -u "$SERVICE_USER" sed -i "s|ADMIN_USER=admin|ADMIN_USER=$ADMIN_USER|g" .env
-sudo -u "$SERVICE_USER" sed -i "s|ADMIN_PASS=admin|ADMIN_PASS=$ADMIN_PASS|g" .env
-sudo -u "$SERVICE_USER" sed -i "s|ADMIN_SECRET=change-me|ADMIN_SECRET=$ADMIN_SECRET|g" .env
+sudo -u "$SERVICE_USER" sed -i "s|JWT_SECRET_KEY=.*|JWT_SECRET_KEY=$JWT_SECRET_KEY|g" .env
+sudo -u "$SERVICE_USER" sed -i "s|ADMIN_USER=.*|ADMIN_USER=$ADMIN_USER|g" .env
+sudo -u "$SERVICE_USER" sed -i "s|ADMIN_PASS=.*|ADMIN_PASS=$ADMIN_PASS|g" .env
+sudo -u "$SERVICE_USER" sed -i "s|ADMIN_SECRET=.*|ADMIN_SECRET=$ADMIN_SECRET|g" .env
 
 # Installation des services systemd
 echo -e "${YELLOW}Installation des services systemd...${NC}"
