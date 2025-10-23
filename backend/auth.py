@@ -18,7 +18,7 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 480  # 8 heures
 
 # Identifiants admin
-ADMIN_USERNAME = os.getenv("ADMIN_USER", "admin")
+ADMIN_USERNAME = os.getenv("ADMIN_USER", "admin@admin.fr")
 ADMIN_PASSWORD = os.getenv("ADMIN_PASS", "admin")
 
 # Liste blanche d'emails autorisés (à configurer via .env ou base de données)

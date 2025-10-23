@@ -70,14 +70,14 @@ export default function Login({ onLoginSuccess }: LoginProps) {
 
           <div className="form-group">
             <label htmlFor="username" className="form-label">
-              Identifiant
+              Adresse email
             </label>
             <input
               id="username"
-              type="text"
+              type="email"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              placeholder="admin"
+              placeholder="admin@admin.fr"
               className="form-input"
               required
               autoFocus
@@ -94,7 +94,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="admin"
+              placeholder="••••••••"
               className="form-input"
               required
               disabled={loading}

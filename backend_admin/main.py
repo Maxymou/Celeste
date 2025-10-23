@@ -58,7 +58,7 @@ def get_settings() -> AdminSettings:
     _load_env_file(project_root / ".env")
 
     db_path = Path(os.getenv("CELESTEX_DB_PATH", "./data/celestex.db"))
-    admin_user = os.getenv("ADMIN_USER", "admin")
+    admin_user = os.getenv("ADMIN_USER", "admin@admin.fr")
     admin_pass = os.getenv("ADMIN_PASS", "admin")
     admin_secret = os.getenv("ADMIN_SECRET", "change-me")
 
