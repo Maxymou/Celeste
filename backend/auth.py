@@ -17,6 +17,10 @@ SECRET_KEY = os.getenv("JWT_SECRET_KEY", "votre-secret-jwt-a-changer-en-producti
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 480  # 8 heures
 
+# Identifiants admin
+ADMIN_USERNAME = os.getenv("ADMIN_USER", "admin")
+ADMIN_PASSWORD = os.getenv("ADMIN_PASS", "admin")
+
 # Liste blanche d'emails autorisés (à configurer via .env ou base de données)
 ALLOWED_EMAILS = os.getenv(
     "ALLOWED_EMAILS",
@@ -28,7 +32,7 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 class LoginRequest(BaseModel):
     """Requête de connexion"""
-    email: EmailStr
+    email: str  # Accepte aussi un username (pas uniquement EmailStr)
     password: str
 
 
@@ -70,19 +74,32 @@ def authenticate_user(email: str, password: str) -> bool:
     """
     Authentifie un utilisateur
 
-    Pour le moment : authentification simple par liste blanche
-    En production : vérifier contre la base de données avec hash bcrypt
+    Supporte deux modes d'authentification :
+    1. Username/password pour l'admin (admin/admin)
+    2. Liste blanche d'emails pour les autres utilisateurs
 
     Args:
-        email: Email de l'utilisateur
-        password: Mot de passe (pour l'instant non vérifié, TODO)
+        email: Email ou username de l'utilisateur
+        password: Mot de passe
 
     Returns:
         True si authentifié, False sinon
     """
+    # Normaliser l'identifiant
+    identifier = email.strip()
+
+    # Vérifier si c'est l'admin
+    if identifier == ADMIN_USERNAME:
+        if password == ADMIN_PASSWORD:
+            logger.info(f"Connexion admin réussie pour: {identifier}")
+            return True
+        else:
+            logger.warning(f"Tentative de connexion admin avec mot de passe incorrect")
+            return False
+
     # Vérifier si l'email est autorisé
-    if not is_email_allowed(email):
-        logger.warning(f"Tentative de connexion avec email non autorisé: {email}")
+    if not is_email_allowed(identifier):
+        logger.warning(f"Tentative de connexion avec email non autorisé: {identifier}")
         return False
 
     # TODO: Vérifier le mot de passe contre la base de données
@@ -91,7 +108,7 @@ def authenticate_user(email: str, password: str) -> bool:
     # user = get_user_from_db(email)
     # return verify_password(password, user.hashed_password)
 
-    logger.info(f"Connexion réussie pour: {email}")
+    logger.info(f"Connexion réussie pour: {identifier}")
     return True
 
 

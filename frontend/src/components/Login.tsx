@@ -5,7 +5,7 @@ interface LoginProps {
 }
 
 export default function Login({ onLoginSuccess }: LoginProps) {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -19,7 +19,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ email: username, password })
       });
 
       const data = await response.json();
@@ -29,7 +29,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
       }
 
       // Callback de succès (le contexte gère le stockage)
-      onLoginSuccess(email, data.token);
+      onLoginSuccess(username, data.token);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erreur de connexion');
     } finally {
@@ -69,15 +69,15 @@ export default function Login({ onLoginSuccess }: LoginProps) {
           )}
 
           <div className="form-group">
-            <label htmlFor="email" className="form-label">
-              Adresse email
+            <label htmlFor="username" className="form-label">
+              Identifiant
             </label>
             <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="utilisateur@rte-france.com"
+              id="username"
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="admin"
               className="form-input"
               required
               autoFocus
@@ -94,7 +94,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
+              placeholder="admin"
               className="form-input"
               required
               disabled={loading}
