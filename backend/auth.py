@@ -24,7 +24,7 @@ ADMIN_PASSWORD = os.getenv("ADMIN_PASS", "admin")
 # Liste blanche d'emails autorisés (à configurer via .env ou base de données)
 ALLOWED_EMAILS = os.getenv(
     "ALLOWED_EMAILS",
-    "admin@rte-france.com,user@rte-france.com,test@rte-france.com"
+    "user@example.com,test@example.com"
 ).split(",")
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")

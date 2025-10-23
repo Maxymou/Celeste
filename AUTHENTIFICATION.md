@@ -24,7 +24,7 @@ POST /api/auth/login
 Content-Type: application/json
 
 {
-  "email": "utilisateur@rte-france.com",
+  "email": "user@example.com",
   "password": "mot_de_passe"
 }
 ```
@@ -34,7 +34,7 @@ Content-Type: application/json
 {
   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
   "token_type": "bearer",
-  "email": "utilisateur@rte-france.com",
+  "email": "user@example.com",
   "expires_at": "2025-10-22T01:27:43.701077"
 }
 ```
@@ -79,7 +79,7 @@ Créer un fichier `.env` à la racine du projet (voir `.env.example`):
 JWT_SECRET_KEY=votre-secret-jwt-super-securise-aleatoire-123456789
 
 # Liste des emails autorisés (séparés par des virgules)
-ALLOWED_EMAILS=admin@rte-france.com,user@rte-france.com,ingenieur@rte-france.com
+ALLOWED_EMAILS=admin@admin.fr,user@example.com,engineer@example.com
 ```
 
 ### Générer une clé secrète JWT
@@ -119,7 +119,7 @@ Aucune dépendance supplémentaire requise (utilise React natif).
 
    Éditer `.env` et ajouter les emails autorisés:
    ```bash
-   ALLOWED_EMAILS=email1@rte-france.com,email2@rte-france.com
+   ALLOWED_EMAILS=user1@example.com,user2@example.com
    ```
 
 2. **Démarrer le serveur**
@@ -143,7 +143,7 @@ Aucune dépendance supplémentaire requise (utilise React natif).
 ### Pour les utilisateurs finaux
 
 1. Ouvrir l'application CELESTE X
-2. Entrer votre email RTE (doit être dans la liste blanche)
+2. Entrer votre email (doit être dans la liste blanche)
 3. Entrer votre mot de passe
 4. Cliquer sur "Se connecter"
 5. Une fois connecté, accéder au profil (icône en haut à droite) pour se déconnecter
@@ -231,7 +231,7 @@ Actuellement, le système n'utilise pas de base de données de mots de passe. Po
 ```bash
 curl -X POST http://localhost:6000/api/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email": "admin@rte-france.com", "password": "test123"}'
+  -d '{"email": "admin@admin.fr", "password": "admin"}'
 ```
 
 **Email non autorisé:**
@@ -247,8 +247,8 @@ curl -X POST http://localhost:6000/api/auth/login \
 Les tentatives de connexion sont loggées:
 
 ```
-2025-10-21 19:27:43 - backend.main - INFO - Tentative de connexion pour: admin@rte-france.com
-2025-10-21 19:27:43 - backend.main - INFO - Connexion réussie pour: admin@rte-france.com
+2025-10-21 19:27:43 - backend.main - INFO - Tentative de connexion pour: admin@admin.fr
+2025-10-21 19:27:43 - backend.main - INFO - Connexion réussie pour: admin@admin.fr
 
 2025-10-21 19:28:15 - backend.main - WARNING - Échec d'authentification pour: hacker@example.com
 ```
@@ -338,7 +338,7 @@ expires_delta=timedelta(minutes=480)  # 8h → changer
 - [ ] Authentification avec base de données (emails + mots de passe hashés)
 - [ ] Refresh tokens pour prolonger les sessions
 - [ ] Authentification à deux facteurs (2FA)
-- [ ] OAuth2 avec Active Directory RTE
+- [ ] OAuth2 / LDAP pour authentification externe
 - [ ] Gestion des rôles et permissions (admin, user, readonly)
 - [ ] Historique des connexions
 - [ ] Rate limiting pour prévenir les attaques par force brute

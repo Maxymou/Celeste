@@ -129,7 +129,7 @@ export default function Login({ onLoginSuccess }: LoginProps) {
         {/* Footer */}
         <div className="login-footer">
           <p className="footer-text">
-            Application réservée aux agents RTE
+            Application professionnelle
           </p>
           <p className="footer-version">
             Version 1.1.0

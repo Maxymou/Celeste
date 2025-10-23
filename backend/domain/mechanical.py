@@ -1,6 +1,6 @@
 """
 Module de calculs mécaniques pour lignes électriques aériennes
-Basé sur les formules RTE - Techniques Lignes et Calculs (2016)
+Basé sur les techniques standards de calcul de lignes électriques
 """
 import math
 from typing import Optional, Dict, List, Tuple
