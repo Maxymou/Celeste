@@ -218,11 +218,18 @@ class UserAdmin(ModelView, model=User):
     column_sortable_list = [User.name, User.email, User.created_at, User.is_active]
 
     # Ne pas afficher le mot de passe hashé dans les listes
-    column_details_exclude_list = [User.hashed_password]
-    column_exclude_list = [User.hashed_password, User.updated_at]
+    column_details_exclude_list = [User.hashed_password, User.updated_at]
 
     # Champs du formulaire
     form_columns = [User.name, User.email, "password", User.is_active]
+
+    # Ajouter un champ personnalisé pour le mot de passe
+    form_extra_fields = {
+        "password": PasswordField(
+            "Mot de passe",
+            description="Requis lors de la création, optionnel lors de la modification"
+        )
+    }
 
     # Configuration des champs
     column_labels = {
@@ -243,6 +250,10 @@ class UserAdmin(ModelView, model=User):
         if "password" in data and data["password"]:
             password = data.pop("password")
             model.hashed_password = get_password_hash(password)
+        elif is_created:
+            # Si c'est une création et qu'aucun mot de passe n'est fourni, erreur
+            raise ValueError("Le mot de passe est requis pour créer un utilisateur")
+        # Sinon, on garde le mot de passe existant (lors de la modification)
 
         await super().on_model_change(data, model, is_created, request)
 
