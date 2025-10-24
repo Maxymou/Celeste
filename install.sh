@@ -150,6 +150,10 @@ sudo -u "$SERVICE_USER" sed -i "s|ADMIN_USER=.*|ADMIN_USER=$ADMIN_USER|g" .env
 sudo -u "$SERVICE_USER" sed -i "s|ADMIN_PASS=.*|ADMIN_PASS=$ADMIN_PASS|g" .env
 sudo -u "$SERVICE_USER" sed -i "s|ADMIN_SECRET=.*|ADMIN_SECRET=$ADMIN_SECRET|g" .env
 
+# Exécuter la migration pour créer la table des utilisateurs
+echo -e "${YELLOW}Création de la base de données et de l'utilisateur admin...${NC}"
+sudo -u "$SERVICE_USER" bash -c "source .venv/bin/activate && python scripts/migrate_add_users.py"
+
 # Installation des services systemd
 echo -e "${YELLOW}Installation des services systemd...${NC}"
 
