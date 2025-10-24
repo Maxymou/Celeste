@@ -216,9 +216,8 @@ class UserAdmin(ModelView, model=User):
     column_searchable_list = [User.name, User.email]
     column_sortable_list = [User.name, User.email, User.created_at, User.is_active]
 
-    # Ne pas afficher le mot de passe hashé dans les listes
+    # Ne pas afficher le mot de passe hashé dans la vue détaillée
     column_details_exclude_list = [User.hashed_password]
-    column_exclude_list = [User.hashed_password, User.updated_at]
 
     # Champs du formulaire
     form_columns = [User.name, User.email, "password", User.is_active]
