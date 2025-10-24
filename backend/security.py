@@ -51,6 +51,20 @@ def generate_password_hash(password: str) -> str:
     return hash_password(password)
 
 
+def get_password_hash(password: str) -> str:
+    """
+    Alias de hash_password pour compatibilité
+    Utilisé par l'interface d'administration
+
+    Args:
+        password: Le mot de passe en clair
+
+    Returns:
+        Le hash bcrypt du mot de passe
+    """
+    return hash_password(password)
+
+
 def main():
     """Point d'entrée CLI pour générer des hash de mots de passe"""
     if len(sys.argv) < 2:

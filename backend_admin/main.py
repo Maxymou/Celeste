@@ -17,8 +17,8 @@ from starlette.middleware.sessions import SessionMiddleware
 
 # Ajouter le chemin parent pour importer les modèles
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from backend.models.db_models import Base, Cable, Layer  # noqa: E402
-from backend.security import verify_password  # noqa: E402
+from backend.models.db_models import Base, Cable, Layer, User  # noqa: E402
+from backend.security import verify_password, get_password_hash  # noqa: E402
 
 # Configuration du logging
 logging.basicConfig(level=logging.INFO)
@@ -198,6 +198,59 @@ class LayerAdmin(ModelView, model=Layer):
     column_sortable_list = [Layer.cable_id, Layer.nature, Layer.strands]
 
 
+class UserAdmin(ModelView, model=User):
+    """Vue admin pour les utilisateurs"""
+
+    name = "User"
+    name_plural = "Users"
+    icon = "fa-solid fa-user"
+
+    column_list = [
+        User.id,
+        User.name,
+        User.email,
+        User.is_active,
+        User.created_at,
+    ]
+
+    column_searchable_list = [User.name, User.email]
+    column_sortable_list = [User.name, User.email, User.created_at, User.is_active]
+
+    # Ne pas afficher le mot de passe hashé dans les listes
+    column_details_exclude_list = [User.hashed_password]
+    column_exclude_list = [User.hashed_password, User.updated_at]
+
+    # Champs du formulaire
+    form_columns = [User.name, User.email, "password", User.is_active]
+
+    # Configuration des champs
+    column_labels = {
+        "name": "Nom",
+        "email": "Email",
+        "password": "Mot de passe",
+        "is_active": "Actif",
+        "created_at": "Créé le",
+    }
+
+    column_formatters = {
+        User.is_active: lambda m, a: "✓ Oui" if m.is_active else "✗ Non",
+    }
+
+    async def on_model_change(self, data: dict, model: User, is_created: bool, request) -> None:
+        """Hook appelé avant la création/modification d'un utilisateur"""
+        # Si un mot de passe est fourni, le hacher
+        if "password" in data and data["password"]:
+            password = data.pop("password")
+            model.hashed_password = get_password_hash(password)
+
+        await super().on_model_change(data, model, is_created, request)
+
+    async def on_model_delete(self, model: User, request) -> None:
+        """Hook appelé avant la suppression d'un utilisateur"""
+        logger.info(f"Suppression de l'utilisateur: {model.email}")
+        await super().on_model_delete(model, request)
+
+
 # Créer l'interface admin
 admin = Admin(
     app,
@@ -207,5 +260,6 @@ admin = Admin(
     authentication_backend=AdminAuthBackend(),
 )
 
+admin.add_view(UserAdmin)
 admin.add_view(CableAdmin)
 admin.add_view(LayerAdmin)

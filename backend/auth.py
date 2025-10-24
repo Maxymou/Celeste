@@ -6,11 +6,28 @@ import os
 import logging
 from datetime import datetime, timedelta
 from typing import Optional
+from pathlib import Path
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from pydantic import BaseModel, EmailStr
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
 logger = logging.getLogger(__name__)
+
+# Import du modèle User
+try:
+    from backend.models.db_models import User
+    USER_MODEL_AVAILABLE = True
+except ImportError:
+    logger.warning("Modèle User non disponible, utilisation de l'authentification fallback uniquement")
+    USER_MODEL_AVAILABLE = False
+
+# Configuration de la base de données
+DB_PATH = os.getenv("CELESTEX_DB_PATH", "./data/celestex.db")
+Path(DB_PATH).parent.mkdir(parents=True, exist_ok=True)
+engine = create_engine(f"sqlite:///{DB_PATH}", connect_args={"check_same_thread": False})
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # Configuration
 SECRET_KEY = os.getenv("JWT_SECRET_KEY", "votre-secret-jwt-a-changer-en-production")
