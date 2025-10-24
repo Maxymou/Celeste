@@ -252,11 +252,14 @@ class UserAdmin(ModelView, model=User):
 
     async def on_model_change(self, data: dict, model: User, is_created: bool, request) -> None:
         """Hook appelé avant la création/modification d'un utilisateur"""
-        # Le champ password est stocké dans model.password (propriété temporaire)
-        # Il faut le convertir en hashed_password avant la sauvegarde
-        if hasattr(model, 'password') and model.password:
-            model.hashed_password = get_password_hash(model.password)
-            model.password = None  # Nettoyer la propriété temporaire
+        # Récupérer le mot de passe depuis data (car form_columns utilise des strings)
+        password = data.get('password')
+
+        if password:
+            # Hasher le mot de passe et le stocker dans hashed_password
+            model.hashed_password = get_password_hash(password)
+            # Retirer password de data pour éviter qu'il ne soit sauvegardé
+            data.pop('password', None)
         elif is_created:
             # Si c'est une création et qu'aucun mot de passe n'est fourni, erreur
             raise ValueError("Le mot de passe est requis pour créer un utilisateur")
