@@ -220,21 +220,15 @@ class UserAdmin(ModelView, model=User):
     # Ne pas afficher le mot de passe hashé dans les listes
     column_details_exclude_list = [User.hashed_password, User.updated_at]
 
-    # Définir les champs du formulaire (utiliser des strings car password est une propriété temporaire)
-    form_columns = ["name", "email", "password", "is_active"]
+    # Exclure les champs non éditables et le password temporaire du formulaire
+    form_excluded_columns = [User.hashed_password, User.updated_at, User.created_at, User.password]
 
-    # Utiliser PasswordField pour le champ password
-    form_overrides = {
-        "password": PasswordField
-    }
-
-    # Arguments pour le champ password
-    form_args = {
-        "password": {
-            "label": "Mot de passe",
-            "description": "Requis lors de la création, optionnel lors de la modification",
-            "validators": []  # Pas de validation côté formulaire, on gère dans on_model_change
-        }
+    # Ajouter le champ password comme champ supplémentaire
+    form_extra_fields = {
+        "password": PasswordField(
+            "Mot de passe",
+            description="Requis lors de la création, optionnel lors de la modification"
+        )
     }
 
     # Configuration des champs
