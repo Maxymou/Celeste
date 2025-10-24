@@ -14,6 +14,7 @@ from sqlalchemy import create_engine
 from sqladmin import Admin, ModelView
 from sqladmin.authentication import AuthenticationBackend
 from starlette.middleware.sessions import SessionMiddleware
+from wtforms import PasswordField, validators
 
 # Ajouter le chemin parent pour importer les modèles
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
