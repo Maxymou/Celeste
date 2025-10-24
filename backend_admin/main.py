@@ -220,8 +220,8 @@ class UserAdmin(ModelView, model=User):
     # Ne pas afficher le mot de passe hashé dans les listes
     column_details_exclude_list = [User.hashed_password, User.updated_at]
 
-    # Exclure les champs non éditables et le password temporaire du formulaire
-    form_excluded_columns = [User.hashed_password, User.updated_at, User.created_at, User.password]
+    # Exclure les champs non éditables du formulaire (NE PAS inclure User.password car il cause KeyError)
+    form_excluded_columns = [User.hashed_password, User.updated_at, User.created_at]
 
     # Ajouter le champ password comme champ supplémentaire
     form_extra_fields = {
