@@ -14,6 +14,7 @@ from sqlalchemy import create_engine
 from sqladmin import Admin, ModelView
 from sqladmin.authentication import AuthenticationBackend
 from starlette.middleware.sessions import SessionMiddleware
+from wtforms import PasswordField, validators
 
 # Ajouter le chemin parent pour importer les modèles
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -217,10 +218,19 @@ class UserAdmin(ModelView, model=User):
     column_sortable_list = [User.name, User.email, User.created_at, User.is_active]
 
     # Ne pas afficher le mot de passe hashé dans la vue détaillée
-    column_details_exclude_list = [User.hashed_password]
+    column_details_exclude_list = [User.hashed_password, User.updated_at]
 
-    # Champs du formulaire
-    form_columns = [User.name, User.email, "password", User.is_active]
+    # Exclure le mot de passe hashé du formulaire
+    form_excluded_columns = [User.hashed_password, User.updated_at, User.created_at]
+
+    # Ajouter un champ personnalisé pour le mot de passe
+    form_extra_fields = {
+        "password": PasswordField(
+            "Mot de passe",
+            validators=[validators.Optional()],
+            description="Laisser vide pour conserver le mot de passe actuel lors de la modification"
+        )
+    }
 
     # Configuration des champs
     column_labels = {
@@ -241,6 +251,10 @@ class UserAdmin(ModelView, model=User):
         if "password" in data and data["password"]:
             password = data.pop("password")
             model.hashed_password = get_password_hash(password)
+        elif is_created:
+            # Si c'est une création et qu'aucun mot de passe n'est fourni, erreur
+            raise ValueError("Le mot de passe est requis pour créer un utilisateur")
+        # Sinon, on garde le mot de passe existant (lors de la modification)
 
         await super().on_model_change(data, model, is_created, request)
 
