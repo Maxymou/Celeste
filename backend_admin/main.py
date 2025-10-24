@@ -220,15 +220,14 @@ class UserAdmin(ModelView, model=User):
     # Ne pas afficher le mot de passe hashé dans la vue détaillée
     column_details_exclude_list = [User.hashed_password, User.updated_at]
 
-    # Exclure le mot de passe hashé du formulaire
-    form_excluded_columns = [User.hashed_password, User.updated_at, User.created_at]
+    # Définir explicitement les champs du formulaire (exclut automatiquement les autres)
+    form_columns = [User.name, User.email, "password", User.is_active]
 
     # Ajouter un champ personnalisé pour le mot de passe
     form_extra_fields = {
         "password": PasswordField(
             "Mot de passe",
-            validators=[validators.Optional()],
-            description="Laisser vide pour conserver le mot de passe actuel lors de la modification"
+            description="Requis lors de la création, optionnel lors de la modification"
         )
     }
 
