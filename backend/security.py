@@ -6,10 +6,7 @@ Usage CLI:
     python -m backend.security [mot_de_passe]
 """
 import sys
-from passlib.context import CryptContext
-
-# Configuration du contexte de hashage avec bcrypt
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+import bcrypt
 
 
 def hash_password(password: str) -> str:
@@ -22,7 +19,12 @@ def hash_password(password: str) -> str:
     Returns:
         Le hash bcrypt du mot de passe
     """
-    return pwd_context.hash(password)
+    # Convertir le mot de passe en bytes et le hasher
+    password_bytes = password.encode('utf-8')
+    salt = bcrypt.gensalt()
+    hashed = bcrypt.hashpw(password_bytes, salt)
+    # Retourner le hash en string
+    return hashed.decode('utf-8')
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -36,7 +38,11 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     Returns:
         True si le mot de passe est valide, False sinon
     """
-    return pwd_context.verify(plain_password, hashed_password)
+    # Convertir les strings en bytes
+    password_bytes = plain_password.encode('utf-8')
+    hashed_bytes = hashed_password.encode('utf-8')
+    # Vérifier le mot de passe
+    return bcrypt.checkpw(password_bytes, hashed_bytes)
 
 
 def generate_password_hash(password: str) -> str:
