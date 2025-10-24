@@ -220,15 +220,24 @@ class UserAdmin(ModelView, model=User):
     # Ne pas afficher le mot de passe hashé dans les listes
     column_details_exclude_list = [User.hashed_password, User.updated_at]
 
-    # Exclure le hashed_password du formulaire (sera remplacé par le champ password personnalisé)
+    # Exclure le hashed_password du formulaire
     form_excluded_columns = [User.hashed_password, User.updated_at, User.created_at]
 
-    # Ajouter un champ personnalisé pour le mot de passe
-    form_extra_fields = {
-        "password": PasswordField(
-            "Mot de passe",
-            description="Requis lors de la création, optionnel lors de la modification"
-        )
+    # Inclure le champ password (propriété temporaire du modèle)
+    form_columns = [User.name, User.email, User.password, User.is_active]
+
+    # Utiliser PasswordField pour le champ password
+    form_overrides = {
+        "password": PasswordField
+    }
+
+    # Arguments pour le champ password
+    form_args = {
+        "password": {
+            "label": "Mot de passe",
+            "description": "Requis lors de la création, optionnel lors de la modification",
+            "validators": []  # Pas de validation côté formulaire, on gère dans on_model_change
+        }
     }
 
     # Configuration des champs
@@ -246,10 +255,11 @@ class UserAdmin(ModelView, model=User):
 
     async def on_model_change(self, data: dict, model: User, is_created: bool, request) -> None:
         """Hook appelé avant la création/modification d'un utilisateur"""
-        # Si un mot de passe est fourni, le hacher
-        if "password" in data and data["password"]:
-            password = data.pop("password")
-            model.hashed_password = get_password_hash(password)
+        # Le champ password est stocké dans model.password (propriété temporaire)
+        # Il faut le convertir en hashed_password avant la sauvegarde
+        if hasattr(model, 'password') and model.password:
+            model.hashed_password = get_password_hash(model.password)
+            model.password = None  # Nettoyer la propriété temporaire
         elif is_created:
             # Si c'est une création et qu'aucun mot de passe n'est fourni, erreur
             raise ValueError("Le mot de passe est requis pour créer un utilisateur")

@@ -21,6 +21,9 @@ class User(Base):
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
 
+    # Propriété temporaire pour le formulaire admin (non persistée en BDD)
+    password: str = None  # type: ignore
+
     def __repr__(self):
         return f"<User(email='{self.email}', name='{self.name}', active={self.is_active})>"
 
