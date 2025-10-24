@@ -2,6 +2,7 @@
 Modèles de base de données partagés pour CELESTE X
 Utilisés par backend_admin et scripts d'import
 """
+from typing import ClassVar, Optional
 from sqlalchemy import Integer, String, Float, Column, DateTime, Boolean
 from sqlalchemy.orm import declarative_base
 from datetime import datetime
@@ -12,6 +13,7 @@ Base = declarative_base()
 class User(Base):
     """Modèle d'utilisateur pour l'authentification"""
     __tablename__ = "user"
+    __allow_unmapped__ = True  # Permet d'avoir des attributs non mappés par SQLAlchemy
 
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)  # Nom complet de l'utilisateur
@@ -20,6 +22,9 @@ class User(Base):
     is_active = Column(Boolean, default=True, nullable=False)  # Compte actif/désactivé
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+
+    # Propriété temporaire pour le formulaire admin (non persistée en BDD)
+    password: str = None  # type: ignore
 
     def __repr__(self):
         return f"<User(email='{self.email}', name='{self.name}', active={self.is_active})>"
