@@ -1,0 +1,19 @@
+[Unit]
+Description=PWA App Template DEV Host API
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/PWA-App-Template
+Environment=NODE_ENV=production
+Environment=HOST_API_PORT=4878
+Environment=APP_WORKDIR=/opt/PWA-App-Template
+EnvironmentFile=-/opt/PWA-App-Template/.env
+ExecStart=/usr/bin/node /opt/PWA-App-Template/host-tools/dev-host-api.js
+Restart=always
+RestartSec=3
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target
